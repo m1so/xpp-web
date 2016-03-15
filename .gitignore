@@ -1,0 +1,12 @@
+/.idea
+/vendor
+/node_modules
+/resources/assets/bower
+Homestead.yaml
+.env
+_ide_helper.php
+npm-debug.log
+
+/public/build/*
+/public/css/*
+/public/js/*

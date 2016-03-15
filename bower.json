@@ -1,0 +1,8 @@
+{
+  "name": "xpp-web",
+  "dependencies": {
+    "admin-lte": "~2.1.2",
+    "jquery": "~2.1.4",
+    "ionicons": "~2.0.1"
+  }
+}
