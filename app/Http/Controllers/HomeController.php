@@ -24,6 +24,8 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $documents = \Auth::user()->documents()->get();
+
+        return view('home', compact('documents'));
     }
 }

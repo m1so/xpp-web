@@ -27,7 +27,32 @@ Route::get('/', function () {
 */
 
 Route::group(['middleware' => ['web']], function () {
-    //
+    Route::post('api/xpp', 'XppController@run');
+
+    Route::get('documents', ['as' => 'document.list', 'uses' => 'DocumentsController@all']);
+    Route::get('documents/{id}', ['as' => 'document.show', 'uses' => 'DocumentsController@show']);
+
+    /*
+     * Project/document creation related pages
+     */
+    Route::group(['prefix' => 'create'], function () {
+        Route::get('from-template', function () {
+            return view('document.create.from-template');
+        });
+
+        Route::get('blank', function () {
+            return view('document.create.blank');
+        });
+    });
+
+    /*
+     * Help related pages
+     */
+    Route::group(['prefix' => 'help'], function () {
+        Route::get('changelog', function () {
+            return view('changelog');
+        });
+    });
 });
 
 Route::group(['middleware' => 'web'], function () {

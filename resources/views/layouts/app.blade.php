@@ -28,46 +28,24 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <![endif]-->
 </head>
 
-<body class="skin-green sidebar-mini">
+<body class="skin-green layout-top-nav">
 <div class="wrapper">
 
-    <!-- Main Header -->
-    <header class="main-header">
-
-        <!-- Logo -->
-        <a href="/" class="logo">
-            <!-- mini logo for sidebar mini 50x50 pixels -->
-            <span class="logo-mini"><b>X</b>PP</span>
-            <!-- logo for regular state and mobile devices -->
-            <span class="logo-lg"><b>XPP</b>Web</span>
-        </a>
-
-        <!-- Header Navbar -->
-        <nav class="navbar navbar-static-top" role="navigation">
-            <!-- Sidebar toggle button-->
-            <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
-                <span class="sr-only">Toggle navigation</span>
-            </a>
-
-            <!-- NAVBAR template -->
-            @include('common.navbar')
-        </nav>
-    </header>
-    <!-- Left side column. contains the logo and sidebar -->
-    <!-- SIDEBAR template -->
-    @include('common.sidebar')
+    @include('common.navbar')
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-        <!-- HEADER template -->
-        @include('common.header')
+        <div class="container-fluid">
+            <!-- HEADER template -->
+            @include('common.header')
 
-        <!-- Main content -->
-        <section class="content">
+                    <!-- Main content -->
+            <section class="content">
 
-            @yield('content')
+                @yield('content')
 
-        </section><!-- /.content -->
+            </section>
+        </div>
     </div><!-- /.content-wrapper -->
 
     <!-- FOOTER template -->

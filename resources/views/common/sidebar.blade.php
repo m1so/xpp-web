@@ -17,7 +17,7 @@
 
         <!-- Sidebar Menu -->
         <ul class="sidebar-menu">
-            <li class="active"><a href="#"><i class="fa fa-home"></i> <span>Home</span></a></li>
+            <li class="active"><a href="/home"><i class="fa fa-home"></i> <span>Home</span></a></li>
 
             {{--<li class="header">PROJECTS</li>--}}
             <li class="treeview active">

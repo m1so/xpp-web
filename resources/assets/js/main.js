@@ -7,7 +7,7 @@ Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector("meta[name='csr
 
 // Components
 let components = {
-    'document': require('./components/xpp-document/document.vue')
+    'document-switcher': require('./components/gui/document-switcher.vue')
 };
 
 // Root Vue instance

@@ -11,7 +11,11 @@
                         <a href="#tab_output" data-toggle="tab">Output</a>
                     </li>
                     <li class="pull-right">
-                        <button @click="postOde" type="button" class="btn btn-block btn-success">
+                        <button @click="switchEditor" type="button" class="btn btn-default">
+                            Switch editor
+                        </button>
+
+                        <button @click="postOde" type="button" class="btn btn-success">
                             Run
                         </button>
                     </li>
@@ -44,7 +48,7 @@
 
                         <!-- Output part -->
                         <div class="col-md-4 col-sm-12">
-                            <ode-file :data="{ ics: ics, params: params, des: des, options: options }" v-ref:ode-file></ode-file>
+                            <ode-file :ics.sync="ics" :des.sync="des" :params.sync="params" :options.sync="options" v-ref:ode-file></ode-file>
                         </div>
                     </div>
 
@@ -73,34 +77,27 @@
     </div>
 </template>
 
-<script>
+<script type="text/babel">
     import tabset from 'vue-strap/src/Tabset.vue'
     import tab from 'vue-strap/src/Tab.vue'
 
     export default {
+        props: ['ode', 'log', 'output', 'title', 'id'],
+
+        compiled() {
+            this.parse();
+            //this.$refs.odeFile.generate();
+        },
+
         data() {
             return {
-                output: null,
-                log: null,
                 status: null,
                 lastSent: null,
 
-                ics: [
-                    {key: 'x1', value: 0, description: ''},
-                    {key: 'x2', value: 1, description: ''}
-                ],
-                des: [
-                    {key: 'dx/dt', value: 'x*4', description: ''},
-                    {key: 'dy/dt', value: 'y*4', description: ''}
-                ],
-                params: [
-                    {key: 'p1', value: 0, description: ''},
-                    {key: 'p2', value: 0, description: ''},
-                    {key: 'p3', value: 0, description: ''}
-                ],
-                options: [
-                    {key: 'opt1', value: 'value1', description: ''}
-                ]
+                ics: [],
+                des: [],
+                params: [],
+                options: []
             }
         },
 
@@ -108,8 +105,13 @@
             postOde() {
                 this.lastSent = new Date();
 
-                this.$http.post('/api/xpp', { 'ode': this.$refs.odeFile.generate() })
+                this.$http.post('/api/xpp', {
+                    ode: this.$refs.odeFile.$data.ode,
+                    id: this.id,
+                    title: this.title
+                })
                     .then(function (response) {
+                        this.ode = response.data.ode;
                         this.log = response.data.log;
                         this.status = response.data.status;
                         this.output = response.data.output;
@@ -121,6 +123,80 @@
 
                         console.log("Error");
                     });
+            },
+
+            switchEditor() {
+                this.ode = this.$refs.odeFile.ode;
+                this.parse();
+                this.$parent.$data.simpleEditor = ! this.$parent.$data.simpleEditor;
+            },
+
+            parse() {
+                var self = this;
+
+                function extractFromLine(line, prefix, store, description) {
+                    if (line.includes(prefix)) {
+                        // Remove prefix
+                        let paramsString = line.substr(prefix.length);
+                        paramsString.split(',').forEach(function (element) {
+                            // Get key and value
+                            let parts = element.split('=', 2);
+
+                            let row = self[store].find(el => el.key === parts[0].trim());
+
+                            if (row) {
+                                row.key = parts[0].trim();
+                                row.value = parts[1].trim();
+                                row.description = description;
+                            } else {
+                                self[store].push({
+                                    key: parts[0].trim(),
+                                    value: parts[1].trim(),
+                                    description: description
+                                });
+                            }
+                        })
+                    }
+                }
+
+                // Parse the given ode
+                this.ode.split('\n').forEach(function (wholeLine) {
+                    // Get content before comment ('#')
+                    let line = wholeLine.split('#')[0];
+
+                    if (line.length) {
+                        extractFromLine(line, 'par ', 'params', 'Parameter');
+
+                        extractFromLine(line, 'init ', 'ics', 'Initial condition');
+
+                        extractFromLine(line, '@ ', 'options', 'Option');
+
+                        // Differential equations
+                        if (line.includes('/dt ') || line.includes('\'')) {
+                            let parts = line.split('=', 2);
+
+                            let row = self.des.find(el => el.key === parts[0].trim());
+                            if (row) {
+                                row.key = parts[0].trim();
+                                row.value = parts[1].trim();
+                                row.description = 'Differential equation';
+                            } else {
+                                self.des.push({
+                                    key: parts[0].trim(),
+                                    value: parts[1].trim(),
+                                    description: 'Differential equation'
+                                });
+                            }
+                        }
+                    }
+                })
+            }
+        },
+
+        events: {
+            'ode-text-edited': function(odeText) {
+                this.ode = odeText;
+                this.parse();
             }
         },
 
