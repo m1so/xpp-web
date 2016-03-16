@@ -15,6 +15,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <!-- Gulp'd & Elixir'd stuff -->
     <link href="{{ elixir('css/bootstrap.css') }}" rel="stylesheet" />
     <link href="{{ elixir('css/app.css') }}" rel="stylesheet" />
+    <link href="{{ elixir('css/main.css') }}" rel="stylesheet" />
     <!-- Font Awesome Icons -->
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
     <!-- Ionicons -->

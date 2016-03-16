@@ -2,7 +2,7 @@
     <div class="box box-success">
         <div class="box-header with-border">
             <h3 class="box-title">
-                Generated ODE file
+                ODE file
             </h3>
             <i class="fa fa-info-circle pull-right"></i>
         </div>
@@ -10,25 +10,37 @@
         <div class="box-body">
             <textarea class="form-control"
                       style="height: 70.5vh"
-                      v-model="ode"
-                      v-bind:value="generate()"
-                      v-on:blur="notify">
+                      @blur="notify"
+                      v-model="ode">
             </textarea>
         </div>
     </div>
 </template>
 
-<script type="text/ecmascript-6">
+<script type="text/babel">
     export default {
-        props: ['ics', 'des', 'params', 'options'],
+        props: ['ics', 'des', 'params', 'options', 'ode'],
 
         ready() {
             this.ode = this.generate();
         },
 
-        data() {
-            return {
-                ode: ''
+        watch: {
+            'ics': {
+                deep: true,
+                handler() { this.ode = this.generate() }
+            },
+            'des': {
+                deep: true,
+                handler() { this.ode = this.generate() }
+            },
+            'params': {
+                deep: true,
+                handler() { this.ode = this.generate() }
+            },
+            'options': {
+                deep: true,
+                handler() { this.ode = this.generate() }
             }
         },
 
@@ -104,7 +116,7 @@
             },
 
             notify() {
-                this.$dispatch('ode-text-edited', this.ode);
+                this.$parent.parse();
             }
         }
     }

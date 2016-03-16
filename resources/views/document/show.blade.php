@@ -4,12 +4,11 @@
 @section('content-title', $document->title)
 
 @section('content')
-    <document-switcher
+    <document
             ode="{{ $document->odeFile() }}"
             log="{{ $document->logFile() }}"
             output="{{ $document->resultFile() }}"
-            title="{{ $document->title }}"
-            id="{{ $document->getKey() }}"
+            :data="{{ $document->toJson() }}"
     >
-    </document-switcher>
+    </document>
 @endsection

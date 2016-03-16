@@ -48,6 +48,8 @@ elixir(function(mix) {
         '../bower/admin-lte/build/less/skins/skin-green.less'
     ], 'public/css/app.css')
 
+    .sass('main.scss')
+
     // Copy the fonts
     .copy(bowerDir + 'ionicons/fonts', 'public/build/fonts')
 
@@ -55,6 +57,7 @@ elixir(function(mix) {
     .version([
         'css/bootstrap.css',
         'css/app.css',
+        'css/main.css',
         'css/icons.css',
         'js/vendor.js',
         'js/main.js'
