@@ -39,12 +39,14 @@ class XppController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $document = $this->xppService->runFromOde($request->get('ode'), $document);
+        $document = $this->xppService->runFromOde($request->get('ode'), $document, $request->get('withNullAndDir', false));
 
-        return [
+        return response()->json([
             'output' => $document->resultFile(),
             'log' => $document->logFile(),
             'ode' => $document->odeFile(),
-        ];
+            'directionFields' => $document->directionFieldsFile(),
+            'nullclines' => $document->nullclinesFile()
+        ]);
     }
 }

@@ -13,6 +13,12 @@
                       @blur="notify"
                       v-model="ode">
             </textarea>
+
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" v-model="doParsing"> Parse document back to interactive mode on change
+                </label>
+            </div>
         </div>
     </div>
 </template>
@@ -21,26 +27,42 @@
     export default {
         props: ['ics', 'des', 'params', 'options', 'ode'],
 
+        data() {
+            return {
+                doParsing: false
+            }
+        },
+
         ready() {
-            this.ode = this.generate();
+            this.doParsing = localStorage.getItem('doParsing') === 'true';
+
+            if (this.doParsing) {
+                this.ode = this.generate();
+            } else {
+                this.ode = this.$parent.$data.ode;
+            }
         },
 
         watch: {
             'ics': {
                 deep: true,
-                handler() { this.ode = this.generate() }
+                handler() { if (this.doParsing) { this.ode = this.generate(); } }
             },
             'des': {
                 deep: true,
-                handler() { this.ode = this.generate() }
+                handler() { if (this.doParsing) { this.ode = this.generate(); } }
             },
             'params': {
                 deep: true,
-                handler() { this.ode = this.generate() }
+                handler() { if (this.doParsing) { this.ode = this.generate(); } }
             },
             'options': {
                 deep: true,
-                handler() { this.ode = this.generate() }
+                handler() { if (this.doParsing) { this.ode = this.generate(); } }
+            },
+
+            doParsing: function (newValue) {
+                localStorage.setItem('doParsing', newValue);
             }
         },
 
@@ -116,7 +138,9 @@
             },
 
             notify() {
-                this.$parent.parse();
+                if (this.doParsing) {
+                    this.$parent.parse();
+                }
             }
         }
     }

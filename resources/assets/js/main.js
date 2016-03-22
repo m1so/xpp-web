@@ -7,7 +7,8 @@ Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector("meta[name='csr
 
 // Components
 let components = {
-    'document': require('./components/Document.vue')
+    'document': require('./components/Document.vue'),
+    'create-document-modal': require('./components/DocumentCreateModal.vue')
 };
 
 // Root Vue instance

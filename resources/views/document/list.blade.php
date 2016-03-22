@@ -22,7 +22,7 @@
                 </div>
                 <!-- /.box-body -->
                 <div class="box-footer clearfix no-border">
-                    <button type="button" class="btn btn-default pull-left"><i class="fa fa-plus"></i> Create new document</button>
+                    <create-document-modal></create-document-modal>
                 </div>
             </div>
     </div>

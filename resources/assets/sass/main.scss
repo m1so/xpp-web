@@ -3,3 +3,7 @@
   padding-left: 0;
   padding-right: 0;
 }
+
+.alert.top, .alert.top-right {
+  z-index: 1031 !important;
+}

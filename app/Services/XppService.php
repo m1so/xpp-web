@@ -29,11 +29,11 @@ class XppService
     /**
      * @param string   $odeContent
      * @param Document $document
+     * @param bool     $nullclinesAndDirectionField
      *
      * @return Document
-     *
      */
-    public function runFromOde($odeContent, Document $document)
+    public function runFromOde($odeContent, Document $document, $nullclinesAndDirectionField = false)
     {
         $path = 'xpp/'.$document->getKey();
 
@@ -41,6 +41,10 @@ class XppService
 
         // Run XPP client
         $client = new Client(storage_path('app/'.$path), base_path('xppaut8'));
+        if ($nullclinesAndDirectionField) {
+            $client->withDirectionField();
+            $client->withNullclines();
+        }
         $client->run();
 
         // Return Document

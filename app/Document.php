@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
@@ -15,7 +16,11 @@ class Document extends Model
 
     private function getFileContent($name)
     {
-        return \Storage::drive('local')->get('xpp'.DIRECTORY_SEPARATOR.$this->getKey().DIRECTORY_SEPARATOR.$name);
+        try {
+            return \Storage::drive('local')->get('xpp'.DIRECTORY_SEPARATOR.$this->getKey().DIRECTORY_SEPARATOR.$name);
+        } catch (FileNotFoundException $e) {
+            return "";
+        }
     }
 
     public function resultFile()
@@ -31,5 +36,15 @@ class Document extends Model
     public function logFile()
     {
         return $this->getFileContent('xpp.log');
+    }
+
+    public function nullclinesFile()
+    {
+        return $this->getFileContent('nullclines.dat');
+    }
+
+    public function directionFieldsFile()
+    {
+        return $this->getFileContent('dirfields.dat');
     }
 }
