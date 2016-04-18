@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Document;
 use App\Services\XppService;
-use Baumgartner\Xpp\Client;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -45,8 +44,8 @@ class XppController extends Controller
             'output' => $document->resultFile(),
             'log' => $document->logFile(),
             'ode' => $document->odeFile(),
-            'directionFields' => $document->directionFieldsFile(),
-            'nullclines' => $document->nullclinesFile()
+            'directionField' => $document->directionFieldsFile(),
+            'nullcline' => $document->nullclinesFile()
         ]);
     }
 }

@@ -1,5 +1,5 @@
 <template>
-    <div id="xpp-document-component">
+    <div class="row">
         <div class="col-md-12">
             <!-- Custom Tabs -->
             <div class="nav-tabs-custom">
@@ -9,6 +9,9 @@
                     </li>
                     <li>
                         <a href="#tab_output" data-toggle="tab">Output</a>
+                    </li>
+                    <li>
+                        <a href="#tab_graphs" data-toggle="tab">Graphs</a>
                     </li>
                     <li class="pull-right">
                         <button @click="simpleEditor = !simpleEditor" type="button" class="btn btn-default">
@@ -54,19 +57,42 @@
 
                     <!-- Output tab -->
                     <div class="tab-pane" id="tab_output">
-                        <div class="col-md-4">
-                            <h3>Output</h3>
-                            <pre v-if="output">{{ output }}</pre>
-                        </div>
+                        <div class="col-md-12">
+                            <div class="box box-default">
+                                <div class="box-body">
+                                    <div class="col-md-6">
+                                        <h3>Log</h3>
+                                        <pre v-if="log">{{ log }}</pre>
+                                    </div>
 
-                        <div class="col-md-4">
-                            <h3>Log</h3>
-                            <pre v-if="log">{{ log }}</pre>
-                        </div>
+                                    <div class="col-md-6">
+                                        <h3>Other</h3>
+                                        <span v-if="status">Return code: {{ status }}</span>
+                                    </div>
+                                </div>
+                                <!-- /.box-body -->
 
-                        <div class="col-md-4">
-                            <h3>Other</h3>
-                            <span v-if="status">Return code: {{ status }}</span>
+                                <div v-if="loading" class="overlay">
+                                    <i class="fa fa-refresh fa-spin"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Graphs tab -->
+                    <div class="tab-pane {{ loadGraphs ? null : 'active' }}" id="tab_graphs">
+                        <div class="row">
+                            <div class="col-md-6 col-sm-12">
+                                <nullcline-graph v-if="data.files.nullclines"
+                                           :input="data.files.nullclines"
+                                ></nullcline-graph>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12">
+                                <dir-graph v-if="data.files.directionField"
+                                           :input="data.files.directionField"
+                                ></dir-graph>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -74,32 +100,42 @@
             </div>
             <!-- nav-tabs-custom -->
         </div>
-    </div>
 
-    <alert
-            :show.sync="alert.show"
-            :duration="3000"
-            :type="alert.type"
-            width="400px"
-            placement="top"
-            dismissable
-    >
-        <span class="icon-ok-circled alert-icon-float-left"></span>
-        <strong>{{ alert.title }}</strong>
-        <p>{{ alert.message }}</p>
-    </alert>
+        <alert
+                :show.sync="alert.show"
+                :duration="3000"
+                :type="alert.type"
+                width="400px"
+                placement="top"
+                dismissable
+        >
+            <span class="icon-ok-circled alert-icon-float-left"></span>
+            <strong>{{ alert.title }}</strong>
+            <p>{{ alert.message }}</p>
+        </alert>
+    </div>
 </template>
 
 <script type="text/babel">
     import InputBox from './xpp-document/input-box.vue'
     import OdeFile from './xpp-document/ode-file.vue'
+    import DirGraph from './DirGraph.vue'
+    import NullclineGraph from './NullclineGraph.vue'
 
     export default {
-        props: ['ode', 'log', 'output', 'data'],
+        props: {
+            data: {
+                required: true,
+                type: Object
+            }
+        },
 
         ready() {
             // Convert from stupid localStorage format
             this.simpleEditor = localStorage.getItem('simpleEditor') === 'true';
+
+            // Graph loading - fixes Plot.ly's DOM width issues
+            this.loadGraphs = true;
 
             if (! this.simpleEditor) {
                 this.parse();
@@ -108,8 +144,13 @@
 
         data() {
             return {
-                simpleEditor: null,
+                simpleEditor: localStorage.getItem('simpleEditor') === 'true',
                 loading: false,
+                loadGraphs: false,
+
+                ode: this.data.files.ode,
+                log: this.data.files.log,
+                output: this.data.files.result,
 
                 alert: {
                     show: false,
@@ -245,7 +286,9 @@
         components: {
             'input-box': InputBox,
             'ode-file': OdeFile,
-            'alert': require('vue-strap/dist/vue-strap.min').alert
+            'alert': require('vue-strap/dist/vue-strap.min').alert,
+            'dir-graph': DirGraph,
+            'nullcline-graph': NullclineGraph
         }
     }
 </script>

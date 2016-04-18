@@ -20,6 +20,10 @@
                 </label>
             </div>
         </div>
+
+        <div v-if="$parent.loading" class="overlay">
+            <i class="fa fa-refresh fa-spin"></i>
+        </div>
     </div>
 </template>
 

@@ -61,5 +61,7 @@ elixir(function(mix) {
         'css/icons.css',
         'js/vendor.js',
         'js/main.js'
-    ]);
+    ])
+
+    .browserSync({ proxy: 'xpp.dev' });
 });

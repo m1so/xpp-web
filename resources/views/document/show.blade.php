@@ -4,11 +4,5 @@
 @section('content-title', $document->title)
 
 @section('content')
-    <document
-            ode="{{ $document->odeFile() }}"
-            log="{{ $document->logFile() }}"
-            output="{{ $document->resultFile() }}"
-            :data="{{ $document->toJson() }}"
-    >
-    </document>
+    <document :data="{{ $document->toJson() }}"></document>
 @endsection

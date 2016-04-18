@@ -16,14 +16,23 @@ class DocumentsController extends Controller
     public function __construct(DocumentService $documentService)
     {
         $this->documentService = $documentService;
+
+        $this->middleware('auth');
     }
 
     public function show(Request $request, $id)
     {
+        /** @var Document $document */
         $document = Document::findOrFail($id);
 
         if ($document->user->id !== $request->user()->id) {
             return view('errors.401');
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'data' => $document->toJson()
+            ]);
         }
 
         return view('document.show', compact('document'));

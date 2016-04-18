@@ -53,7 +53,7 @@ class Client
         // We don't need output, since we are using silent flag and specifying log file path
         exec($command, $output, $status);
 
-        // \Log::debug($command, [$output, $status]);
+        \Log::debug($command, [$output, $status]);
 
         return $status;
     }
@@ -65,7 +65,7 @@ class Client
 
     public function withDirectionField()
     {
-        $this->flags .= " -dfdraw 5 ";
+        $this->flags .= " -dfdraw 4 ";
     }
 
 }
