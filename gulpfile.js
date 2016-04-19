@@ -1,4 +1,12 @@
 var elixir = require('laravel-elixir');
+var gutils = require('gulp-util');
+
+if (elixir.config.production == true) {
+    process.env.NODE_ENV = 'production';
+}
+
+// Vueify transform
+require('laravel-elixir-vueify');
 
 /*
  |--------------------------------------------------------------------------
@@ -11,57 +19,70 @@ var elixir = require('laravel-elixir');
  |
  */
 
-var bowerDir = 'resources/assets/bower/';
+// Setup paths
+var paths = {
+    // Vendor - base path to vendor packages
+    vendor: {
+        js: 'node_modules',
+        css: 'node_modules',
+        fonts: 'node_modules',
+    },
+    // Proxy - used for virtual machine + browsersync
+    proxy: 'xpp.dev'
+};
 
-// Fix for LESS path
-elixir.config.assetsDir = 'resources/assets/bower/';
+// Detect development environment and if we are running 'watch' task
+var isDevEnv = gutils.env._.indexOf('watch') > -1 && elixir.config.production != true;
 
-// Vueify transform
-require('laravel-elixir-vueify');
+// Setup hot module reloading
+if (isDevEnv) {
+    elixir.config.js.browserify.plugins.push({
+        name: "browserify-hmr",
+        options : {}
+    });
+}
 
 // Elixir mixes
 elixir(function(mix) {
-    // Vue components entry
+    // Vue components entry point
     mix.browserify('main.js');
 
-    // Vendor stuff
+    // Vendor JS
     mix.scripts([
         'jquery/dist/jquery.js',
         'admin-lte/bootstrap/js/bootstrap.js',
         'admin-lte/dist/js/app.js'
-    ], 'public/js/vendor.js', bowerDir)
+    ], 'public/js/vendor.js', paths.vendor.js);
 
-    // AdminLTE bootstrap CSS
-    .styles([
-        'admin-lte/bootstrap/css/bootstrap.css'
-    ], 'public/css/bootstrap.css', bowerDir)
+    // Vendor CSS
+    mix.styles([
+        'admin-lte/bootstrap/css/bootstrap.css',
+        'font-awesome/css/font-awesome.css'
+    ], 'public/css/vendor.css', paths.vendor.css);
 
-    // Icons CSS
-    .styles([
-        'ionicons/css/ionicons.css'
-    ], 'public/css/icons.css', bowerDir)
+    // LESS entry point
+    mix.less('main.less');
 
-    // LESS
-    // Use '../' to get rid of default 'less/' prefix
-    .less([
-        '../bower/admin-lte/build/less/AdminLTE.less',
-        '../bower/admin-lte/build/less/skins/skin-green.less'
-    ], 'public/css/app.css')
-
-    .sass('main.scss')
+    // mix.sass('main.scss');
 
     // Copy the fonts
-    .copy(bowerDir + 'ionicons/fonts', 'public/build/fonts')
+    mix.copy(paths.vendor.fonts + '/font-awesome/fonts', 'public/fonts');
 
-    // Version files
-    .version([
-        'css/bootstrap.css',
-        'css/app.css',
-        'css/main.css',
-        'css/icons.css',
-        'js/vendor.js',
-        'js/main.js'
-    ])
-
-    .browserSync({ proxy: 'xpp.dev' });
+    // BrowserSync setup
+    if (isDevEnv) {
+        mix.browserSync({
+            // Files to watch
+            files: [
+               elixir.config.appPath + '/**/*.php',
+               elixir.config.get('public.css.outputFolder') + '/**/*.css',
+               elixir.config.get('public.versioning.buildFolder') + '/rev-manifest.json',
+               'resources/views/**/*.php'
+            ],
+            // Proxy through VM
+            proxy: paths.proxy,
+            // Don't open new window when launching gulp and don't send popups in browser
+            open: false,
+            notify: false
+        });
+    }
 });

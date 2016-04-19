@@ -4,8 +4,6 @@
 </template>
 
 <script type="text/babel">
-    var Plotly = require('plotly.js');
-
     export default {
         props: {
             input: {
