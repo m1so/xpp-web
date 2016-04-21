@@ -4,5 +4,5 @@
 @section('content-title', $document->title)
 
 @section('content')
-    <document :data="{{ $document->toJson() }}"></document>
+    <editor :document="{{ $document->toJson() }}"></editor>
 @endsection

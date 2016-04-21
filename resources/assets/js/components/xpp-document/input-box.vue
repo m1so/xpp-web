@@ -1,5 +1,5 @@
 <template>
-    <div class="box box-success {{ data.length <= 5 ? 'box-half-height' : '' }}">
+    <div class="box box-primary {{ data.length <= 5 ? 'box-half-height' : '' }}">
         <div class="box-header with-border">
             <h3 class="box-title">
                 {{ title }}

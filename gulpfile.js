@@ -27,6 +27,10 @@ var paths = {
         css: 'node_modules',
         fonts: 'node_modules',
     },
+    less: [
+        './resources/assets/less',
+        './node_modules/admin-lte/build/less'
+    ],
     // Proxy - used for virtual machine + browsersync
     proxy: 'xpp.dev'
 };
@@ -56,12 +60,13 @@ elixir(function(mix) {
 
     // Vendor CSS
     mix.styles([
-        'admin-lte/bootstrap/css/bootstrap.css',
         'font-awesome/css/font-awesome.css'
     ], 'public/css/vendor.css', paths.vendor.css);
 
     // LESS entry point
-    mix.less('main.less');
+    mix.less('main.less', 'public/css', {
+        paths: paths.less
+    });
 
     // mix.sass('main.scss');
 

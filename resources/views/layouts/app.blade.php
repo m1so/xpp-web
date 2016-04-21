@@ -26,7 +26,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <![endif]-->
 </head>
 
-<body class="skin-green layout-top-nav">
+<body class="skin-xppweb layout-top-nav">
 <div class="wrapper">
 
     @include('common.navbar')

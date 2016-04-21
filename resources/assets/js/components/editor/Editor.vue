@@ -1,0 +1,265 @@
+<template>
+<div id="editor">
+    <div class="container-fluid">
+        <!-- Editor  -->
+        <div class="row">
+            <!-- Custom Tabs -->
+            <div class="nav-tabs-custom">
+            <tabset :active="activeTabIndex">
+                <tab header="Editor">
+                    <div class="row">
+                    <!-- Left part -->
+                    <div v-if="show.interactive" class="col-lg-9 col-md-12">
+                        <!-- Interactive editor 1st row -->
+                        <div class="row">
+                            <!-- Equations -->
+                            <div class="col-sm-6 col-xs-12">
+                                <input-box title="Equations" v-bind:type="constants.DIFFERENTIAL_EQUATION" v-bind:data="parser.des" :items-per-page="show.itemsPerPage"></input-box>
+                            </div>
+                            <!-- Parameters -->
+                            <div class="col-sm-6 col-xs-12">
+                                <input-box title="Parameters" v-bind:type="constants.PARAMETER" v-bind:data="parser.params" :items-per-page="show.itemsPerPage"></input-box>
+                            </div>
+                        </div>
+
+                        <!-- Interactive editor 2nd row -->
+                        <div class="row">
+                            <!-- Initial conditions -->
+                            <div class="col-sm-6 col-xs-12">
+                                <input-box title="Initial conditions" v-bind:type="constants.IC" v-bind:data="parser.ics" :items-per-page="show.itemsPerPage"></input-box>
+                            </div>
+                            <!-- Options -->
+                            <div class="col-sm-6 col-xs-12">
+                                <input-box title="Options" v-bind:type="constants.OPTION" v-bind:data="parser.options" :items-per-page="show.itemsPerPage"></input-box>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right part -->
+                    <div class="col-md-12" v-bind:class="[show.interactive ? 'col-lg-3' : 'col-lg-12']">
+                        <div class="box box-primary">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">
+                                    ODE File
+                                </h3>
+                                <div class="box-tools pull-right">
+                                    <button @click="show.sidebar = true" type="button" class="btn btn-box-tool">
+                                        <i class="fa fa-cog"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <textarea v-model="input" @blur="callParse" v-el:editor lazy class="ode-textarea"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </tab><!-- end editor tab -->
+
+                <tab header="Output">
+                    Log
+                </tab>
+
+                <tab header="Graphs">
+                    Graphs
+                </tab>
+            </tabset>
+            </div>
+        </div>
+
+        <!-- ~~~~~~~ Non-visible components ~~~~~~~ -->
+
+        <!-- Sidebar -->
+        <sidebar :show.sync="show.sidebar" :placement="show.sidebarPlacement" header="Sidebar (W)" :width="350">
+            <!-- Buttons -->
+            <div class="row">
+                <div class="col-xs-6">
+                    <button @click="run()" type="button" class="btn btn-block btn-primary">Run (R)</button>
+                </div>
+                <div class="col-xs-6">
+                    <button @click="save()" type="button" class="btn btn-block btn-default">Save (S)</button>
+                </div>
+            </div>
+            <hr>
+
+            <!-- Editor settings -->
+            <h4>Editor settings</h4>
+            <div class="form-group">
+                <input v-model="show.itemsPerPage" number type="number" style="width: 2em">
+                <label>Items per page in input boxes</label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input v-model="show.interactive" type="checkbox"> Interactive editor
+                </label>
+            </div>
+            <hr>
+        </sidebar>
+
+        <!-- Popup alert -->
+        <alert
+            :show.sync="alert.show"
+            :duration="3000"
+            :type="alert.type"
+            width="400px"
+            placement="top-right"
+            dismissable
+        >
+            <strong>{{ alert.title }}</strong>
+            <p>{{ alert.content }}</p>
+        </alert>
+</div>
+</template>
+
+<script>
+import Parser from './../../xpp/parser.js';
+import * as parserConstants from './../../xpp/constants';
+import { tabset, tab, aside, alert } from 'vue-strap';
+import Input from './InteractiveInput.vue';
+
+export default {
+    props: {
+        document: {
+            type: Object,
+            required: true
+        }
+    },
+    created() {
+        this.initKeyboard();
+
+        let storeSettings = JSON.parse(localStorage.getItem('show'));
+
+        if (storeSettings && Object.keys(storeSettings).length === Object.keys(this.show).length) {
+            this.show = storeSettings;
+        }
+
+        this.parser.parse();
+    },
+
+    ready() {
+        this.show.sidebar = false;
+
+        // Escape => blur text area (so other keyboard shortcuts are usable)
+        window.$(this.$els.editor).keydown((e) => {
+            if (e.which === 27) {
+                this.$els.editor.blur();
+            }
+        });
+    },
+
+    beforeDestroy() {
+        window.Mousetrap.reset();
+    },
+
+    data() {
+        var parser = new Parser(this.document.files.ode);
+
+        return {
+            parser: parser,
+            input: this.document.files.ode,
+            constants: parserConstants,
+            show: {
+                interactive: true,
+                editorSettings: false,
+                itemsPerPage: 6,
+                sidebar: false,
+                sidebarPlacement: 'left'
+            },
+            alert: {
+                show: false,
+                type: '',
+                title: '',
+                content: ''
+            },
+            activeTabIndex: 0
+        }
+    },
+
+    methods: {
+        initKeyboard() {
+            let shortcuts = window.Mousetrap;
+
+            // W => Toggle sidebar
+            shortcuts.bind(['x w'], (e) => { this.show.sidebar = !this.show.sidebar });
+
+            // I => Toggle interactive
+            shortcuts.bind(['x i'], (e) => { this.show.interactive = !this.show.interactive });
+
+            // S => Save
+            shortcuts.bind(['x s'], (e) => { this.save() });
+
+            // R => Run
+            shortcuts.bind(['x r'], (e) => { this.run() });
+
+            // E => Focus editor
+            shortcuts.bind(['x e'], (e) => { this.$els.editor.focus(); return false; });
+
+            // T E => Tab editor (1st)
+            shortcuts.bind(['x t e'], (e) => { this.activeTabIndex = 0; });
+
+            // T O => Tab output (2nd)
+            shortcuts.bind(['x t o'], (e) => { this.activeTabIndex = 1; });
+
+            // T G => Tab graphs (3rd)
+            shortcuts.bind(['x t g'], (e) => { this.activeTabIndex = 2; });
+        },
+
+        callParse() {
+            this.parser.reparse(this.input);
+        },
+
+        run() {
+            console.log('RUN');
+            this.showAlert('success', 'Running!', 'Your file is being computed right now.');
+        },
+
+        save() {
+            this.showAlert('success', 'Saved!', 'Your file has been saved');
+        },
+
+        showAlert(type, title, content, disappear = 3100) {
+            // Show new alert
+            this.alert.type = type;
+            this.alert.title = title;
+            this.alert.content = content;
+            this.alert.show = true;
+
+            // Clear text
+            // setTimeout(() => { this.alert = { show: false, type: '', title: '', content: ''} }, disappear);
+        }
+    },
+
+    watch: {
+        'parser.tokens': {
+            handler: function(newValue, oldValue) {
+                this.input = this.parser.generate();
+            },
+            deep: true
+        },
+        'show': {
+            handler: function(newValue, oldValue) {
+                // console.log('Saving options to localStorage: ', JSON.stringify(newValue));
+                localStorage.setItem('show', JSON.stringify(newValue));
+            },
+            deep: true
+        }
+    },
+
+    components: {
+        tabset,
+        tab,
+        alert,
+        'sidebar': aside,
+        'input-box': Input
+    }
+}
+
+</script>
+
+<style>
+    .ode-textarea {
+        width: 100%;
+        height: 72vh;
+        border-style: none;
+    }
+</style>

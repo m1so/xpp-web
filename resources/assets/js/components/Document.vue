@@ -300,6 +300,6 @@
     }
 
     .nav-tabs-custom > .nav-tabs > li.active {
-        border-top-color: #00a65a;
+        /*border-top-color: #00a65a;*/
     }
 </style>
