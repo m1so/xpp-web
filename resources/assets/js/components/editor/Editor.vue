@@ -57,11 +57,20 @@
                 </tab><!-- end editor tab -->
 
                 <tab header="Output">
-                    Log
+                    <pre>
+<!--                 -->{{ document.files.log }}
+                    </pre>
                 </tab>
 
                 <tab header="Graphs">
-                    Graphs
+                    <graph :input="document.files.result"
+                           :variables="variables"
+                    >
+                    </graph>
+
+                    <dir-graph :input="document.files.directionField"></dir-graph>
+
+                    <nullcline-graph :input="document.files.nullclines"></nullcline-graph>
                 </tab>
             </tabset>
             </div>
@@ -112,10 +121,15 @@
 </template>
 
 <script>
+import { tabset, tab, aside, alert } from 'vue-strap';
+
 import Parser from './../../xpp/parser.js';
 import * as parserConstants from './../../xpp/constants';
-import { tabset, tab, aside, alert } from 'vue-strap';
+
 import Input from './InteractiveInput.vue';
+import NullclineGraph from './../graphs/NullclineGraph.vue';
+import DirGraph from './../graphs/DirGraph.vue';
+import Graph from './../graphs/Graph.vue';
 
 export default {
     props: {
@@ -124,6 +138,7 @@ export default {
             required: true
         }
     },
+
     created() {
         this.initKeyboard();
 
@@ -172,6 +187,12 @@ export default {
                 content: ''
             },
             activeTabIndex: 0
+        }
+    },
+
+    computed: {
+        variables() {
+            return this.parser.des.map(token => token.value[0]);
         }
     },
 
@@ -250,7 +271,10 @@ export default {
         tab,
         alert,
         'sidebar': aside,
-        'input-box': Input
+        'input-box': Input,
+        'nullcline-graph': NullclineGraph,
+        'dir-graph': DirGraph,
+        'graph': Graph
     }
 }
 

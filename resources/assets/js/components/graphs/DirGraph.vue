@@ -1,6 +1,5 @@
 <template>
     <div v-el:dir-graph id="dir-graph" style="width: 100%; height: 500px;"></div>
-
 </template>
 
 <script type="text/babel">
@@ -27,13 +26,8 @@
         ready() {
             this.parse();
 
-            console.log($(this.$el.parentNode).width());
-
             Plotly.newPlot(this.$els.dirGraph, [this.graphData], {
                 title: 'Direction field',
-//                width: this.width,
-//                height: this.height,
-//                autosize: false,
                 hovermode: 'closest'
             });
         },
