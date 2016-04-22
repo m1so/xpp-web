@@ -3,7 +3,7 @@
         <div class="col-md-10">
             <div v-el:graph id="graph" style="width: 100%; height: 82vh;"></div>
         </div>
-        <div class="col-md-2" style="padding-right: 20px;">
+        <div class="col-md-2" style="padding-right: 25px;">
             <div class="form-group">
                 <label>X axis</label>
                 <select v-model="selected.xAxis" class="form-control axis-control">
@@ -119,16 +119,17 @@
 
                 // Grab the data
                 this.input.split('\n').forEach(line => {
-                    const row = line.trim().split(' ');
-                    let time = row[0];
+                    const lineValues = line.trim().split(' ');
 
-                    row.forEach((value, index) => {
+                    lineValues.forEach((value, index) => {
+                        // Time values are always in the first column
                         if (index === 0) {
                             this.data['t'].values.push(value);
 
                             return;
                         }
 
+                        // The rest is ordered by dif. equations appearance in ODE file
                         const name = this.variables[index - 1];
                         this.data[name].values.push(value);
                     })
