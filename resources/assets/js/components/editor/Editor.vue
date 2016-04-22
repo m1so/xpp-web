@@ -1,6 +1,15 @@
 <template>
-<div id="editor">
     <div class="container-fluid">
+        <div class="row">
+            <div class="page-header" style="margin-top: 0px; margin-bottom: 0px;">
+                <div class="btn-toolbar pull-right">
+                    <button type="button" class="btn btn-default btn-editor-header">Save</button>
+                    <button type="button" class="btn btn-primary btn-editor-header">Run</button>
+                </div>
+                <h3>{{ document.title }}</h3>
+            </div>
+        </div>
+
         <!-- Editor  -->
         <div class="row">
             <!-- Custom Tabs -->
@@ -117,7 +126,7 @@
             <strong>{{ alert.title }}</strong>
             <p>{{ alert.content }}</p>
         </alert>
-</div>
+
 </template>
 
 <script>
@@ -285,5 +294,9 @@ export default {
         width: 100%;
         height: 72vh;
         border-style: none;
+    }
+
+    .btn-editor-header {
+        width: 65px;
     }
 </style>
