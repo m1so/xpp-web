@@ -3,8 +3,12 @@
         <div class="row">
             <div class="page-header" style="margin-top: 0px; margin-bottom: 0px;">
                 <div class="btn-toolbar pull-right">
-                    <button type="button" class="btn btn-default btn-editor-header">Save</button>
-                    <button type="button" class="btn btn-primary btn-editor-header">Run</button>
+                    <button @click="save()" type="button" class="btn btn-default btn-editor-header">
+                        Save
+                    </button>
+                    <button @click="run()" type="button" class="btn btn-primary btn-editor-header">
+                        Run
+                    </button>
                 </div>
                 <h3>{{ document.title }}</h3>
             </div>
