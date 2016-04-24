@@ -6,6 +6,7 @@ Homestead.yaml
 .env
 _ide_helper.php
 npm-debug.log
+deploy.php
 
 /public/build/*
 /public/css/*
