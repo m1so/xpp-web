@@ -1,5 +1,5 @@
 <template>
-    <div v-el:dir-graph id="dir-graph" style="width: 100%; height: 500px;"></div>
+    <div v-el:dir-graph id="dir-graph" style="width: 100%; height: 81vh;"></div>
 </template>
 
 <script type="text/babel">

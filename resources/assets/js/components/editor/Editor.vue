@@ -76,14 +76,28 @@
                 </tab>
 
                 <tab header="Graphs">
-                    <graph :input="document.files.result"
-                           :variables="variables"
-                    >
-                    </graph>
-
-                    <dir-graph :input="document.files.directionField"></dir-graph>
-
-                    <nullcline-graph :input="document.files.nullclines"></nullcline-graph>
+                    <tabset>
+                        <tab header="2D">
+                            <graph :input="document.files.result"
+                                   :variables="variables"
+                            ></graph>
+                        </tab>
+                        <tab header="3D">
+                            <three-dim-graph :input="document.files.result"
+                                             :variables="variables"
+                            ></three-dim-graph>
+                        </tab>
+                        <tab header="Direction field">
+                            <dir-graph :input="document.files.directionField"
+                                       :variables="variables"
+                            ></dir-graph>
+                        </tab>
+                        <tab header="Nullclines">
+                            <nullcline-graph :input="document.files.nullclines"
+                                             :variables="variables"
+                            ></nullcline-graph>
+                        </tab>
+                    </tabset>
                 </tab>
             </tabset>
             </div>
@@ -143,6 +157,7 @@ import Input from './InteractiveInput.vue';
 import NullclineGraph from './../graphs/NullclineGraph.vue';
 import DirGraph from './../graphs/DirGraph.vue';
 import Graph from './../graphs/Graph.vue';
+import ThreeDimensionalGraph from './../graphs/3DGraph.vue';
 
 export default {
     props: {
@@ -205,7 +220,19 @@ export default {
 
     computed: {
         variables() {
-            return this.parser.des.map(token => token.value[0]);
+            return this.parser.des.map(token => token.value[0]).map(variable => {
+                if (variable.includes('/dt')) {
+                    // Remove first 'd' and Remove '/dt'
+                    return variable.substring(1).replace('/dt', '');
+                }
+
+                if (variable.includes('\'')) {
+                    // Remove "'"
+                    return variable.replace('\'', '');
+                }
+
+                return variable;
+            });
         }
     },
 
@@ -287,7 +314,8 @@ export default {
         'input-box': Input,
         'nullcline-graph': NullclineGraph,
         'dir-graph': DirGraph,
-        'graph': Graph
+        'graph': Graph,
+        'three-dim-graph': ThreeDimensionalGraph
     }
 }
 

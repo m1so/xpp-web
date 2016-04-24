@@ -1,7 +1,15 @@
 <template>
     <div class="row">
         <div class="col-md-10">
-            <div v-el:graph id="graph" style="width: 100%; height: 81vh;"></div>
+            <div v-el:tgraph id="tgraph" style="width: 100%; height: 81vh;">
+                <span v-if="!graphDrawn">
+                    <div class="callout callout-warning cpu-intensive">
+                        <h4>Warning!</h4>
+                        <p>3D graphs can be CPU intensive, if you wish to
+                        draw a new graph press "Show" in the right panel.</p>
+                    </div>
+                </span>
+            </div>
         </div>
         <div class="col-md-2" style="padding-right: 25px;">
             <div class="form-group">
@@ -17,31 +25,17 @@
                     <option selected>{{ variables[0] }}</option>
                     <option v-for="name in variables.slice(1)">{{ name }}</option>
                 </select>
+
+                <label>Z axis</label>
+                <select v-model="selected.zAxis" class="form-control axis-control">
+                    <option>t</option>
+                    <option>{{ variables[0] }}</option>
+                    <option selected>{{ variables[1] }}</option>
+                    <option v-for="name in variables.slice(2)">{{ name }}</option>
+                </select>
             </div>
 
-            <strong>Mode</strong>
-            <div class="radio">
-                <label>
-                    <input v-model="selected.type" type="radio" id="discrete" value="markers">
-                    Discrete
-                </label>
-            </div>
-
-            <div class="radio">
-                <label>
-                    <input v-model="selected.type" type="radio" id="continuous" value="line">
-                    Continuous
-                </label>
-            </div>
-
-            <div class="radio">
-                <label>
-                    <input v-model="selected.type" type="radio" id="mixed" value="lines+markers">
-                    Mixed
-                </label>
-            </div>
-
-            <button @click="createGraph(selected.xAxis, selected.yAxis, selected.type)"
+            <button @click="createGraph(selected.xAxis, selected.yAxis, selected.zAxis)"
                     type="button"
                     class="btn btn-block btn-primary"
             >
@@ -66,46 +60,40 @@
 
         ready() {
             this.parse();
-
-            this.createGraph('t', this.variables[0], this.selected.type);
         },
 
         data() {
             return {
+                graphDrawn: false,
                 selected: {
                     xAxis: '',
                     yAxis: '',
-                    type: 'markers'
+                    zAxis: ''
                 },
                 data: {}
             }
         },
 
         methods: {
-            createGraph(xName, yName, mode = "markers") {
+            createGraph(xName, yName, zName) {
                 let graphData = {
                     x: this.data[xName].values,
                     y: this.data[yName].values,
-                    mode: mode,
-                    line: {
-                        color: 'rgb(77, 32, 16)',
-                        width: 2
-                    },
-                    marker: {
-                        color: 'rgb(16, 32, 77)',
-                        size: 4,
-                        opacity: 0.4
-                    }
+                    z: this.data[zName].values,
+                    type: 'scatter3d',
+                    mode: 'lines'
                 };
 
                 let graphOptions = {
-                    title: `${xName} vs. ${yName}`,
+                    title: `"${xName}" vs. "${yName}" vs. "${zName}"`,
                     xaxis: { title: xName },
                     yaxis: { title: yName },
+                    zaxis: { title: zName },
                     hovermode: 'closest'
                 };
 
-                Plotly.newPlot(this.$els.graph, [graphData], graphOptions);
+                Plotly.newPlot(this.$els.tgraph, [graphData], graphOptions);
+                this.graphDrawn = true;
             },
 
             parse() {
@@ -140,5 +128,11 @@
 <style>
     .axis-control {
         color: rgb(51, 51, 51);
+    }
+
+    .cpu-intensive {
+        margin-right: 15px;
+        margin-left: 15px;
+        margin-top: 20px;
     }
 </style>

@@ -1,6 +1,5 @@
 <template>
-    <div v-el:nullcline-graph id="nullcline-graph" style="width: 100%; height: 500px;"></div>
-
+    <div v-el:nullcline-graph id="nullcline-graph" style="width: 100%; height: 81vh;"></div>
 </template>
 
 <script type="text/babel">
@@ -10,24 +9,16 @@
                 required: true,
                 type: String
             },
-
-            width: {
-                required: false,
-                type: Number,
-                default: 700
-            },
-
-            height: {
-                required: false,
-                type: Number,
-                default: 450
+            variables: {
+                type: Array,
+                required: true
             }
         },
 
         ready() {
             this.parse();
 
-            Plotly.newPlot(this.$els.nullclineGraph, [this.graphData], {
+            Plotly.newPlot(this.$els.nullclineGraph, this.graphData, {
                 title: 'Nullclines',
                 hovermode: 'closest'
             });
@@ -35,30 +26,51 @@
 
         data() {
             return {
-                x: [],
-                y: []
+                x: [
+                    [], []
+                ],
+                y: [
+                    [], []
+                ]
             }
         },
 
         computed: {
             graphData() {
-                return {
-                    x: this.x,
-                    y: this.y,
-                    type: 'scatter'
-                }
+                return [
+                    {
+                        x: this.x[0],
+                        y: this.y[0],
+                        name: this.variables[0],
+                        type: 'scatter',
+                        mode: 'lines'
+                    },
+                    {
+                        x: this.x[1],
+                        y: this.y[1],
+                        name: this.variables[1],
+                        type: 'scatter',
+                        mode: 'lines'
+                    }
+                ]
             }
         },
 
         methods: {
             parse() {
+                let previousTrace = 0;
+
                 this.input.split('\n').forEach((line) => {
                     // Format: x1 y1
-                    let row = line.split(' ');
+                    let row = line.trim().split(' ');
 
-                    // Add x and y coordinates
-                    this.x.push(row[0]);
-                    this.y.push(row[1]);
+                    let x = parseFloat(row[0]);
+                    let y = parseFloat(row[1]);
+                    let trace = parseInt(row[2]) - 1 || previousTrace;
+                    previousTrace = trace;
+
+                    this.x[trace].push(x);
+                    this.y[trace].push(y);
                 });
             }
         }
