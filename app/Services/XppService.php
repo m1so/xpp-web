@@ -4,50 +4,84 @@ namespace App\Services;
 
 use App\Document;
 use App\Libraries\Xpp\Client;
-use App\User;
+use Illuminate\Contracts\Filesystem\Filesystem;
 
 class XppService
 {
-    /**
-     * @var User
-     */
-    protected $user;
-
     /**
      * @var \Illuminate\Contracts\Filesystem\Filesystem
      */
     protected $storage;
 
-    public function __construct()
-    {
-        //$this->user = $user;
+    /**
+     * @var string
+     */
+    protected $xppPath;
 
-        $this->storage = \Storage::drive('local');
+    public function __construct(Filesystem $storage)
+    {
+        $this->xppPath = config('xppweb.xpp_path');
+        $this->storage = $storage;
     }
 
+    public function run(Document $document, $input, $options)
+    {
+        // Options
+        $options = array_replace([
+            'nullclines' => false,
+            'directionField' => false
+        ], $options);
+
+        $relativePath = 'xppweb/'.$document->getKey();
+        $path = storage_path('app/'.$relativePath);
+
+        $this->cleanDirectory($relativePath);
+
+        $this->saveOdeFile($relativePath, $input);
+
+        $this->runClient($path, $options);
+
+        return $document;
+    }
 
     /**
-     * @param string   $odeContent
-     * @param Document $document
-     * @param bool     $nullclinesAndDirectionField
+     * Run XPP client
      *
-     * @return Document
+     * @param $path
+     * @param $options
      */
-    public function runFromOde($odeContent, Document $document, $nullclinesAndDirectionField = false)
+    private function runClient($path, $options)
     {
-        $path = 'xpp/'.$document->getKey();
+        $client = new Client($path, $this->xppPath);
 
-        $this->storage->put($path.'/input.ode', $odeContent);
-
-        // Run XPP client
-        $client = new Client(storage_path('app/'.$path), base_path('xppaut8'));
-        if ($nullclinesAndDirectionField) {
-            $client->withDirectionField();
+        if ($options['nullclines']) {
             $client->withNullclines();
         }
-        $client->run();
 
-        // Return Document
-        return $document;
+        if ($options['directionField']) {
+            $client->withDirectionField();
+        }
+
+        $client->run();
+    }
+
+    /**
+     * Save input file so we can run XPP
+     *
+     * @param $path
+     * @param $input
+     */
+    private function saveOdeFile($path, $input)
+    {
+        $odePath = $path.DIRECTORY_SEPARATOR.Document::ODE_FILE_NAME;
+
+        $this->storage->put($odePath, $input);
+    }
+
+    private function cleanDirectory($path)
+    {
+        // Remove all contents before new run and create a fresh directory
+        $this->storage->deleteDirectory($path);
+        $this->storage->makeDirectory($path);
     }
 }

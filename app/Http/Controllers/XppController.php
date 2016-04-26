@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 class XppController extends Controller
 {
     /** @var XppService */
-    protected $xppService;
+    protected $xpp;
 
     /**
      * XppController constructor.
@@ -22,7 +22,7 @@ class XppController extends Controller
      */
     public function __construct(XppService $xppService)
     {
-        $this->xppService = $xppService;
+        $this->xpp = $xppService;
 
         $this->middleware('auth');
     }
@@ -30,25 +30,23 @@ class XppController extends Controller
 
     public function run(Request $request)
     {
-        $document = Document::findOrFail($request->get('id'));
+        $document = Document::findOrFail($request->input('document.id'));
 
+        // Check if the user owns the document
         if ($document->user->id !== $request->user()->id) {
             return response()->json([
                 'error' => 'Unauthorized'
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $document = $this->xppService->runFromOde(
-            $request->get('ode'), $document,
-            $request->get('withNullAndDir', false)
+        $document = $this->xpp->run(
+            $document,
+            $request->input('document.input'),
+            $request->input('options')
         );
 
         return response()->json([
-            'output' => $document->resultFile(),
-            'log' => $document->logFile(),
-            'ode' => $document->odeFile(),
-            'directionField' => $document->directionFieldsFile(),
-            'nullcline' => $document->nullclinesFile()
+            'document' => $document->toArray()
         ]);
     }
 }

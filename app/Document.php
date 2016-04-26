@@ -11,6 +11,16 @@ class Document extends Model
 
     protected $appends = ['files'];
 
+    const ODE_FILE_NAME = 'input.ode';
+
+    const RESULT_FILE_NAME = 'result.dat';
+
+    const LOG_FILE_NAME = 'xpp.log';
+
+    const NULLCLINES_FILE_NAME = 'nullclines.dat';
+
+    const DIRFIELDS_FILE_NAME = 'dirfields.dat';
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -19,7 +29,7 @@ class Document extends Model
     private function getFileContent($name)
     {
         try {
-            return \Storage::drive('local')->get('xpp'.DIRECTORY_SEPARATOR.$this->getKey().DIRECTORY_SEPARATOR.$name);
+            return \Storage::drive('local')->get('xppweb'.DIRECTORY_SEPARATOR.$this->getKey().DIRECTORY_SEPARATOR.$name);
         } catch (FileNotFoundException $e) {
             return "";
         }
@@ -27,27 +37,27 @@ class Document extends Model
 
     public function resultFile()
     {
-        return $this->getFileContent('result.dat');
+        return $this->getFileContent(self::RESULT_FILE_NAME);
     }
 
     public function odeFile()
     {
-        return $this->getFileContent('input.ode');
+        return $this->getFileContent(self::ODE_FILE_NAME);
     }
 
     public function logFile()
     {
-        return $this->getFileContent('xpp.log');
+        return $this->getFileContent(self::LOG_FILE_NAME);
     }
 
     public function nullclinesFile()
     {
-        return $this->getFileContent('nullclines.dat');
+        return $this->getFileContent(self::NULLCLINES_FILE_NAME);
     }
 
     public function directionFieldsFile()
     {
-        return $this->getFileContent('dirfields.dat');
+        return $this->getFileContent(self::DIRFIELDS_FILE_NAME);
     }
 
     // Accessors
