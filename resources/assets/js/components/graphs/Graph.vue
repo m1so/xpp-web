@@ -88,7 +88,10 @@
 
                 this.parse();
 
-                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.type, true);
+                let xAxis = this.selected.xAxis || 't';
+                let yAxis = this.selected.yAxis || this.variables[0];
+
+                this.createGraph(xAxis, yAxis, this.selected.type, true);
             }
         },
 

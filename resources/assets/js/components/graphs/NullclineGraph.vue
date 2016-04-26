@@ -16,12 +16,7 @@
         },
 
         ready() {
-            this.parse();
-
-            Plotly.newPlot(this.$els.nullclineGraph, this.graphData, {
-                title: 'Nullclines',
-                hovermode: 'closest'
-            });
+            this.initialize();
         },
 
         data() {
@@ -71,6 +66,14 @@
         },
 
         methods: {
+            initialize() {
+                this.parse();
+
+                Plotly.newPlot(this.$els.nullclineGraph, this.graphData, {
+                    title: 'Nullclines',
+                    hovermode: 'closest'
+                });
+            },
             parse() {
                 let previousTrace = 0;
 
