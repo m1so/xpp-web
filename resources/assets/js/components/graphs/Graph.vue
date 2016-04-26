@@ -51,7 +51,7 @@
     </div>
 </template>
 
-<script>
+<script type="text/babel">
     export default {
         props: {
             input: {
@@ -81,8 +81,19 @@
             }
         },
 
+        events: {
+            redraw(variables, files) {
+                this.input = files.result;
+                this.variables = variables;
+
+                this.parse();
+
+                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.type, true);
+            }
+        },
+
         methods: {
-            createGraph(xName, yName, mode = "markers") {
+            createGraph(xName, yName, mode = "markers", redraw = false) {
                 let graphData = {
                     x: this.data[xName].values,
                     y: this.data[yName].values,
@@ -105,7 +116,13 @@
                     hovermode: 'closest'
                 };
 
-                Plotly.newPlot(this.$els.graph, [graphData], graphOptions);
+                if (redraw) {
+                    this.$els.graph.data[0] = graphData;
+                    this.$els.graph.layout = Object.assign(this.$els.graph.layout, graphOptions);
+                    Plotly.redraw(this.$els.graph);
+                } else {
+                    Plotly.newPlot(this.$els.graph, [graphData], graphOptions);
+                }
             },
 
             parse() {

@@ -3,14 +3,22 @@
         <div class="row">
             <div class="page-header" style="margin-top: 0px; margin-bottom: 0px;">
                 <div class="btn-toolbar pull-right">
-                    <button @click="save()" type="button" class="btn btn-default btn-editor-header">
+                    <button @click="save()"
+                            type="button"
+                            class="btn btn-default btn-editor-header"
+                            :class="loading ? 'disabled' : ''"
+                    >
                         Save
                     </button>
-                    <button @click="run()" type="button" class="btn btn-primary btn-editor-header">
+                    <button @click="run()"
+                            type="button"
+                            class="btn btn-primary btn-editor-header"
+                            :class="loading ? 'disabled' : ''"
+                    >
                         Run
                     </button>
                 </div>
-                <h3>{{ document.title }}</h3>
+                <h3><i v-if="loading" class="fa fa-spin fa-spinner"></i> {{ document.title }}</h3>
             </div>
         </div>
 
@@ -102,52 +110,53 @@
             </tabset>
             </div>
         </div>
+    </div>
 
-        <!-- ~~~~~~~ Non-visible components ~~~~~~~ -->
+    <!-- ~~~~~~~ Non-visible components ~~~~~~~ -->
 
-        <!-- Sidebar -->
-        <sidebar :show.sync="show.sidebar" :placement="show.sidebarPlacement" header="Sidebar (W)" :width="350">
-            <!-- Buttons -->
-            <div class="row">
-                <div class="col-xs-6">
-                    <button @click="run()" type="button" class="btn btn-block btn-primary">Run (R)</button>
-                </div>
-                <div class="col-xs-6">
-                    <button @click="save()" type="button" class="btn btn-block btn-default">Save (S)</button>
-                </div>
+    <!-- Sidebar -->
+    <sidebar :show.sync="show.sidebar" :placement="show.sidebarPlacement" header="Sidebar (W)" :width="350">
+        <!-- Buttons -->
+        <div class="row">
+            <div class="col-xs-6">
+                <button @click="run()" type="button" class="btn btn-block btn-primary">Run (R)</button>
             </div>
-            <hr>
-
-            <!-- Editor settings -->
-            <h4>Editor settings</h4>
-            <div class="form-group">
-                <input v-model="show.itemsPerPage" number type="number" style="width: 2em">
-                <label>Items per page in input boxes</label>
+            <div class="col-xs-6">
+                <button @click="save()" type="button" class="btn btn-block btn-default">Save (S)</button>
             </div>
-            <div class="form-group">
-                <label>
-                    <input v-model="show.interactive" type="checkbox"> Interactive editor
-                </label>
-            </div>
-            <hr>
-        </sidebar>
+        </div>
+        <hr>
 
-        <!-- Popup alert -->
-        <alert
-            :show.sync="alert.show"
-            :duration="3000"
-            :type="alert.type"
-            width="400px"
-            placement="top-right"
-            dismissable
-        >
-            <strong>{{ alert.title }}</strong>
-            <p>{{ alert.content }}</p>
-        </alert>
+        <!-- Editor settings -->
+        <h4>Editor settings</h4>
+        <div class="form-group">
+            <input v-model="show.itemsPerPage" number type="number" style="width: 2em">
+            <label>Items per page in input boxes</label>
+        </div>
+        <div class="form-group">
+            <label>
+                <input v-model="show.interactive" type="checkbox"> Interactive editor
+            </label>
+        </div>
+        <hr>
+    </sidebar>
+
+    <!-- Popup alert -->
+    <alert
+        :show.sync="alert.show"
+        :duration="3000"
+        :type="alert.type"
+        width="400px"
+        placement="top-right"
+        dismissable
+    >
+        <strong>{{ alert.title }}</strong>
+        <p>{{ alert.content }}</p>
+    </alert>
 
 </template>
 
-<script>
+<script type="text/babel">
 import { tabset, tab, aside, alert } from 'vue-strap';
 
 import Parser from './../../xpp/parser.js';
@@ -214,6 +223,7 @@ export default {
                 title: '',
                 content: ''
             },
+            loading: false,
             activeTabIndex: 0
         }
     },
@@ -270,8 +280,34 @@ export default {
         },
 
         run() {
-            console.log('RUN');
             this.showAlert('success', 'Running!', 'Your file is being computed right now.');
+
+            this.loading = true;
+
+            this.$http.post('/api/xpp', {
+                document: {
+                    input: this.input,
+                    id: this.document.id
+                },
+                options: {
+                    nullclines: true,
+                    directionField: true
+                }
+            }).then(response => {
+                this.document = response.data.document;
+
+                this.$broadcast('redraw', this.variables, response.data.document.files);
+
+                this.showAlert('success', 'Finished!', 'Computations have successfully finished.');
+
+                this.loading = false;
+            }).catch(response => {
+                console.log('Failed to run', response);
+
+                this.showAlert('danger', 'Error!', 'Could not run your project.');
+
+                this.loading = false;
+            });
         },
 
         save() {

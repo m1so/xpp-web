@@ -8,18 +8,6 @@
             input: {
                 required: true,
                 type: String
-            },
-
-            width: {
-                required: false,
-                type: Number,
-                default: 700
-            },
-
-            height: {
-                required: false,
-                type: Number,
-                default: 450
             }
         },
 
@@ -47,6 +35,18 @@
                     type: 'scatter',
                     mode: 'lines'
                 }
+            }
+        },
+
+        events: {
+            redraw(variables, files) {
+                this.input = files.directionField;
+
+                this.parse();
+
+                this.$els.dirGraph.data[0] = this.graphData;
+
+                Plotly.redraw(this.$els.dirGraph);
             }
         },
 

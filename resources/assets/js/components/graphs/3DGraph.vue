@@ -45,7 +45,7 @@
     </div>
 </template>
 
-<script>
+<script type="text/babel">
     export default {
         props: {
             input: {
@@ -74,8 +74,19 @@
             }
         },
 
+        events: {
+            redraw(variables, files) {
+                this.input = files.result;
+                this.variables = variables;
+
+                this.parse();
+
+                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.zAxis, true);
+            }
+        },
+
         methods: {
-            createGraph(xName, yName, zName) {
+            createGraph(xName, yName, zName, redraw = false) {
                 let graphData = {
                     x: this.data[xName].values,
                     y: this.data[yName].values,
@@ -92,8 +103,18 @@
                     hovermode: 'closest'
                 };
 
-                Plotly.newPlot(this.$els.tgraph, [graphData], graphOptions);
-                this.graphDrawn = true;
+                if (redraw) {
+                    // Only redraw if 3D graph was created by user to save CPU
+                    if (this.graphDrawn) {
+                        this.$els.tgraph.data[0] = graphData;
+                        this.$els.tgraph.layout = Object.assign(this.$els.tgraph.layout, graphOptions);
+                        Plotly.redraw(this.$els.tgraph);
+                        this.graphDrawn = true;
+                    }
+                } else {
+                    Plotly.newPlot(this.$els.tgraph, [graphData], graphOptions);
+                    this.graphDrawn = true;
+                }
             },
 
             parse() {

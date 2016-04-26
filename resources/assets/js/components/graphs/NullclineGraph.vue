@@ -56,6 +56,20 @@
             }
         },
 
+        events: {
+            redraw(variables, files) {
+                this.input = files.nullclines;
+                this.variables = variables;
+
+                this.parse();
+
+                this.$els.nullclineGraph.data[0] = this.graphData[0];
+                this.$els.nullclineGraph.data[1] = this.graphData[1];
+
+                Plotly.redraw(this.$els.nullclineGraph);
+            }
+        },
+
         methods: {
             parse() {
                 let previousTrace = 0;
