@@ -1,5 +1,6 @@
 <template>
-    <div v-el:dir-graph id="dir-graph" style="width: 100%; height: 81vh;"></div>
+    <!-- Hacky way to enforce Plot.ly's graph width -->
+    <div v-el:dir-graph id="dir-graph" style="width: 96vw; height: 81vh;"></div>
 </template>
 
 <script type="text/babel">
@@ -14,10 +15,7 @@
         ready() {
             this.parse();
 
-            Plotly.newPlot(this.$els.dirGraph, [this.graphData], {
-                title: 'Direction field',
-                hovermode: 'closest'
-            });
+            this.createGraph();
         },
 
         data() {
@@ -40,13 +38,21 @@
 
         events: {
             redraw(variables, files) {
+                let hasContent = !!this.input;
+                this.x = [];
+                this.y = [];
+
                 this.input = files.directionField;
 
                 this.parse();
 
-                this.$els.dirGraph.data[0] = this.graphData;
+                if (hasContent) {
+                    this.$els.dirGraph.data[0] = this.graphData;
 
-                Plotly.redraw(this.$els.dirGraph);
+                    Plotly.redraw(this.$els.dirGraph);
+                } else {
+                    this.createGraph();
+                }
             }
         },
 
@@ -59,6 +65,12 @@
                     // Add x and y coordinates
                     this.x.push(row[0], row[2], null);
                     this.y.push(row[1], row[3], null);
+                });
+            },
+            createGraph() {
+                Plotly.newPlot(this.$els.dirGraph, [this.graphData], {
+                    title: 'Direction field',
+                    hovermode: 'closest'
                 });
             }
         }

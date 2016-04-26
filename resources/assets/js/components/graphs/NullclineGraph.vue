@@ -1,5 +1,6 @@
 <template>
-    <div v-el:nullcline-graph id="nullcline-graph" style="width: 100%; height: 81vh;"></div>
+    <!-- Hacky way to enforce Plot.ly's graph width -->
+    <div v-el:nullcline-graph id="nullcline-graph" style="width: 96vw; height: 81vh;"></div>
 </template>
 
 <script type="text/babel">
@@ -16,7 +17,9 @@
         },
 
         ready() {
-            this.initialize();
+            this.parse();
+
+            this.createGraph();
         },
 
         data() {
@@ -53,27 +56,26 @@
 
         events: {
             redraw(variables, files) {
+                let hasContent = !!this.input;
+                this.x = [[], []];
+                this.y = [[], []];
+
                 this.input = files.nullclines;
                 this.variables = variables;
 
                 this.parse();
 
-                this.$els.nullclineGraph.data[0] = this.graphData[0];
-                this.$els.nullclineGraph.data[1] = this.graphData[1];
+                if (hasContent) {
+                    this.$els.nullclineGraph.data = this.graphData;
 
-                Plotly.redraw(this.$els.nullclineGraph);
+                    Plotly.redraw(this.$els.nullclineGraph);
+                } else {
+                    this.createGraph();
+                }
             }
         },
 
         methods: {
-            initialize() {
-                this.parse();
-
-                Plotly.newPlot(this.$els.nullclineGraph, this.graphData, {
-                    title: 'Nullclines',
-                    hovermode: 'closest'
-                });
-            },
             parse() {
                 let previousTrace = 0;
 
@@ -88,6 +90,12 @@
 
                     this.x[trace].push(x);
                     this.y[trace].push(y);
+                });
+            },
+            createGraph() {
+                Plotly.newPlot(this.$els.nullclineGraph, this.graphData, {
+                    title: 'Nullclines',
+                    hovermode: 'closest'
                 });
             }
         }

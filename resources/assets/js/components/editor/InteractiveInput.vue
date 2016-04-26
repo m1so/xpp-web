@@ -61,7 +61,7 @@
 
 <script>
 export default {
-    props: ['type', 'title', 'data', 'itemsPerPage'],
+    props: ['type', 'title', 'data', 'itemsPerPage', 'parser'],
 
     data() {
         return {
@@ -93,7 +93,7 @@ export default {
             }
 
             // Add with newline option to make nicer ode output
-            this.$parent.parser.add(this.newField.key, this.newField.value, this.type, true);
+            this.parser.add(this.newField.key, this.newField.value, this.type, true);
 
             // Reset the values
             this.newField.key = null;
@@ -101,7 +101,7 @@ export default {
         },
 
         remove(token) {
-            this.$parent.$data.parser.remove(token);
+            this.parser.remove(token);
         },
 
         setPage(pageNumber) {

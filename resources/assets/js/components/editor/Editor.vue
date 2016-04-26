@@ -1,21 +1,15 @@
 <template>
+<div id="editor">
     <div class="container-fluid">
         <div class="row">
             <div class="page-header" style="margin-top: 0px; margin-bottom: 0px;">
                 <div class="btn-toolbar pull-right">
-                    <button @click="save()"
-                            type="button"
-                            class="btn btn-default btn-editor-header"
-                            :class="loading ? 'disabled' : ''"
-                    >
-                        Save
-                    </button>
                     <button @click="run()"
                             type="button"
-                            class="btn btn-primary btn-editor-header"
+                            class="btn btn-primary"
                             :class="loading ? 'disabled' : ''"
                     >
-                        Run
+                        Save & Run
                     </button>
                 </div>
                 <h3><i v-if="loading" class="fa fa-spin fa-spinner"></i> {{ document.title }}</h3>
@@ -35,11 +29,21 @@
                         <div class="row">
                             <!-- Equations -->
                             <div class="col-sm-6 col-xs-12">
-                                <input-box title="Equations" v-bind:type="constants.DIFFERENTIAL_EQUATION" v-bind:data="parser.des" :items-per-page="show.itemsPerPage"></input-box>
+                                <input-box title="Equations"
+                                           :type="constants.DIFFERENTIAL_EQUATION"
+                                           :data="parser.des"
+                                           :items-per-page="show.itemsPerPage"
+                                           :parser="parser"
+                                ></input-box>
                             </div>
                             <!-- Parameters -->
                             <div class="col-sm-6 col-xs-12">
-                                <input-box title="Parameters" v-bind:type="constants.PARAMETER" v-bind:data="parser.params" :items-per-page="show.itemsPerPage"></input-box>
+                                <input-box title="Parameters"
+                                           :type="constants.PARAMETER"
+                                           :data="parser.params"
+                                           :items-per-page="show.itemsPerPage"
+                                           :parser="parser"
+                                ></input-box>
                             </div>
                         </div>
 
@@ -47,17 +51,27 @@
                         <div class="row">
                             <!-- Initial conditions -->
                             <div class="col-sm-6 col-xs-12">
-                                <input-box title="Initial conditions" v-bind:type="constants.IC" v-bind:data="parser.ics" :items-per-page="show.itemsPerPage"></input-box>
+                                <input-box title="Initial conditions"
+                                           :type="constants.IC"
+                                           :data="parser.ics"
+                                           :items-per-page="show.itemsPerPage"
+                                           :parser="parser"
+                                ></input-box>
                             </div>
                             <!-- Options -->
                             <div class="col-sm-6 col-xs-12">
-                                <input-box title="Options" v-bind:type="constants.OPTION" v-bind:data="parser.options" :items-per-page="show.itemsPerPage"></input-box>
+                                <input-box title="Options"
+                                           :type="constants.OPTION"
+                                           :data="parser.options"
+                                           :items-per-page="show.itemsPerPage"
+                                           :parser="parser"
+                                ></input-box>
                             </div>
                         </div>
                     </div>
 
                     <!-- Right part -->
-                    <div class="col-md-12" v-bind:class="[show.interactive ? 'col-lg-3' : 'col-lg-12']">
+                    <div class="col-md-12" :class="[show.interactive ? 'col-lg-3' : 'col-lg-12']">
                         <div class="box box-primary">
                             <div class="box-header with-border">
                                 <h3 class="box-title">
@@ -118,11 +132,8 @@
     <sidebar :show.sync="show.sidebar" :placement="show.sidebarPlacement" header="Sidebar (W)" :width="350">
         <!-- Buttons -->
         <div class="row">
-            <div class="col-xs-6">
-                <button @click="run()" type="button" class="btn btn-block btn-primary">Run (R)</button>
-            </div>
-            <div class="col-xs-6">
-                <button @click="save()" type="button" class="btn btn-block btn-default">Save (S)</button>
+            <div class="col-xs-12">
+                <button @click="run()" type="button" class="btn btn-block btn-primary">Save & Run (R)</button>
             </div>
         </div>
         <hr>
@@ -153,7 +164,7 @@
         <strong>{{ alert.title }}</strong>
         <p>{{ alert.content }}</p>
     </alert>
-
+</div>
 </template>
 
 <script type="text/babel">
@@ -256,9 +267,6 @@ export default {
             // I => Toggle interactive
             shortcuts.bind(['x i'], (e) => { this.show.interactive = !this.show.interactive });
 
-            // S => Save
-            shortcuts.bind(['x s'], (e) => { this.save() });
-
             // R => Run
             shortcuts.bind(['x r'], (e) => { this.run() });
 
@@ -310,10 +318,6 @@ export default {
             });
         },
 
-        save() {
-            this.showAlert('success', 'Saved!', 'Your file has been saved');
-        },
-
         showAlert(type, title, content, disappear = 3100) {
             // Show new alert
             this.alert.type = type;
@@ -362,9 +366,5 @@ export default {
         width: 100%;
         height: 72vh;
         border-style: none;
-    }
-
-    .btn-editor-header {
-        width: 65px;
     }
 </style>

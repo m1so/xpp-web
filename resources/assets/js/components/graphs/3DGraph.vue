@@ -1,14 +1,18 @@
 <template>
     <div class="row">
         <div class="col-md-10">
-            <div v-el:tgraph id="tgraph" style="width: 100%; height: 81vh;">
-                <span v-if="!graphDrawn">
-                    <div class="callout callout-warning cpu-intensive">
-                        <h4>Warning!</h4>
-                        <p>3D graphs can be CPU intensive, if you wish to
-                        draw a new graph press "Show" in the right panel.</p>
-                    </div>
-                </span>
+            <!-- Hacky way to enforce Plot.ly's graph width -->
+            <div v-el:tgraph id="tgraph" style="width: 83vw; height: 81vh;">
+                <div v-if="insufficientVariablesError" class="callout callout-warning variable-error">
+                    <h4>Not enough variables!</h4>
+                    <p>{{ insufficientVariablesError }}</p>
+                </div>
+
+                <div v-if="!graphDrawn" class="callout callout-warning cpu-intensive">
+                    <h4>Warning!</h4>
+                    <p>3D graphs can be CPU intensive, if you wish to
+                    draw a new graph press "Show" in the right panel.</p>
+                </div>
             </div>
         </div>
         <div class="col-md-2" style="padding-right: 25px;">
@@ -74,19 +78,35 @@
             }
         },
 
+        computed: {
+            insufficientVariablesError() {
+                if (this.variables.length < 2) {
+                    return "You need at least 2 variables and time to draw a 3D graph."
+                } else {
+                    return null;
+                }
+            }
+        },
+
         events: {
             redraw(variables, files) {
-                this.input = files.result;
-                this.variables = variables;
+                if (this.graphDrawn) {
+                    this.input = files.result;
+                    this.variables = variables;
 
-                this.parse();
+                    this.parse();
 
-                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.zAxis, true);
+                    this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.zAxis, true);
+                }
             }
         },
 
         methods: {
             createGraph(xName, yName, zName, redraw = false) {
+                if (this.variables.length < 2) {
+                    return;
+                }
+
                 let graphData = {
                     x: this.data[xName].values,
                     y: this.data[yName].values,
@@ -151,7 +171,7 @@
         color: rgb(51, 51, 51);
     }
 
-    .cpu-intensive {
+    .cpu-intensive, .variable-error {
         margin-right: 15px;
         margin-left: 15px;
         margin-top: 20px;

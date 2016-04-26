@@ -1,7 +1,13 @@
 <template>
     <div class="row">
         <div class="col-md-10">
-            <div v-el:graph id="graph" style="width: 100%; height: 81vh;"></div>
+            <!-- Hacky way to enforce Plot.ly's graph width -->
+            <div v-el:graph id="graph" style="width: 83vw; height: 81vh;">
+                <div v-if="insufficientVariablesError" class="callout callout-warning variable-error">
+                    <h4>Not enough variables!</h4>
+                    <p>{{ insufficientVariablesError }}</p>
+                </div>
+            </div>
         </div>
         <div class="col-md-2" style="padding-right: 25px;">
             <div class="form-group">
@@ -81,8 +87,20 @@
             }
         },
 
+        computed: {
+            insufficientVariablesError() {
+                if (this.variables.length < 1) {
+                    return "You need at least 1 variable and time to draw a 2D graph."
+                } else {
+                    return null;
+                }
+            }
+        },
+
         events: {
             redraw(variables, files) {
+                let hasContent = !!this.input;
+
                 this.input = files.result;
                 this.variables = variables;
 
@@ -91,12 +109,16 @@
                 let xAxis = this.selected.xAxis || 't';
                 let yAxis = this.selected.yAxis || this.variables[0];
 
-                this.createGraph(xAxis, yAxis, this.selected.type, true);
+                this.createGraph(xAxis, yAxis, this.selected.type, hasContent);
             }
         },
 
         methods: {
             createGraph(xName, yName, mode = "markers", redraw = false) {
+                if (this.variables.length < 1) {
+                    return;
+                }
+
                 let graphData = {
                     x: this.data[xName].values,
                     y: this.data[yName].values,
@@ -160,5 +182,11 @@
 <style>
     .axis-control {
         color: rgb(51, 51, 51);
+    }
+
+    .variable-error {
+        margin-right: 15px;
+        margin-left: 15px;
+        margin-top: 20px;
     }
 </style>
