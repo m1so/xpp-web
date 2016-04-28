@@ -16,7 +16,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <link href="{{ asset('css/vendor.css') }}" rel="stylesheet" />
     <link href="{{ asset('css/main.css') }}" rel="stylesheet" />
 
-    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    {{-- We are using custom build of plotly for now (see gulpfile.js) --}}
+    {{-- <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> --}}
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->

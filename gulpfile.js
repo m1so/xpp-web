@@ -55,7 +55,8 @@ elixir(function(mix) {
     mix.scripts([
         'jquery/dist/jquery.js',
         'admin-lte/bootstrap/js/bootstrap.js',
-        'admin-lte/dist/js/app.js'
+        'admin-lte/dist/js/app.js',
+        '../resources/assets/js/plotly/plotly.min.js' // Custom plotly build for exporting SVG and EPS
     ], 'public/js/vendor.js', paths.vendor.js);
 
     // Vendor CSS
