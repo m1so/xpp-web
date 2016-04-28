@@ -53,6 +53,15 @@
             >
                 Show
             </button>
+
+            <button @click="download()"
+                    :class="loading.svg ? 'disabled' : ''"
+                    type="button"
+                    class="btn btn-block btn-default"
+            >
+                <i v-if="loading.svg" class="fa fa-spin fa-spinner"></i>
+                Export{{ loading.svg ? 'ing': '' }} as SVG
+            </button>
         </div>
     </div>
 </template>
@@ -82,6 +91,9 @@
                     xAxis: '',
                     yAxis: '',
                     type: 'markers'
+                },
+                loading: {
+                    svg: false
                 },
                 data: {}
             }
@@ -173,6 +185,26 @@
                         const name = this.variables[index - 1];
                         this.data[name].values.push(value);
                     })
+                });
+            },
+
+            /**
+             * Hook into Plotly and force download SVG file
+             * NOTE: Might only work in Chrome and Firefox
+             */
+            download() {
+                this.loading.svg = true;
+
+                Plotly.toImage(this.$els.graph, { format: 'svg' }).then(data => {
+                    let a = document.createElement('a');
+                    a.href = 'data:image/svg+xml;utf8,' + data;
+                    a.download = 'testing.svg';
+                    a.target = '_blank';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+
+                    this.loading.svg = false;
                 });
             }
         }
