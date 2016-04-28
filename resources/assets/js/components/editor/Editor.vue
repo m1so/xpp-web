@@ -241,19 +241,7 @@ export default {
 
     computed: {
         variables() {
-            return this.parser.des.map(token => token.value[0]).map(variable => {
-                if (variable.includes('/dt')) {
-                    // Remove first 'd' and Remove '/dt'
-                    return variable.substring(1).replace('/dt', '');
-                }
-
-                if (variable.includes('\'')) {
-                    // Remove "'"
-                    return variable.replace('\'', '');
-                }
-
-                return variable;
-            });
+            return this.parser.variables;
         }
     },
 

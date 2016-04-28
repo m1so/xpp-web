@@ -6,7 +6,9 @@ import {
     OPTION,
     DIFFERENTIAL_EQUATION,
     DIFFERENCE_EQUATION,
-    IC
+    IC,
+    OTHER,
+    AUX
 } from './constants';
 
 /**
@@ -38,6 +40,12 @@ const definition = {
         keywords: ['(t+1)'],
         matcher: (part) => equationMatcher(part, definition[DIFFERENCE_EQUATION].keywords),
         sanitizer: (part) => part
+    },
+    [AUX]: {
+        prefix: 'aux ',
+        keywords: ['aux'],
+        matcher: (part) => equationMatcher(part, definition[AUX].keywords),
+        sanitizer: (part) => simpleKeywordRemover(part, definition[AUX].keywords)
     },
     [IC]: {
         prefix: 'init ',
@@ -124,13 +132,19 @@ export default class Parser {
      * Constructor
      */
     constructor(input) {
+        // Input file
         this.input = input;
-        this.versions = [{
-            input,
-            time: new Date()
-        }];
+
+        // Version parser runs
+        // this.versions = [{
+        //     input,
+        //     time: new Date()
+        // }];
+
+        // Generated output after parsing
         this.output = '';
 
+        // Token storage
         this.tokens = [];
     }
 
@@ -142,8 +156,14 @@ export default class Parser {
 
         // Line by line
         for (let n = 0; n < lines.length; n++) {
-            let line = lines[n];
+            let line = lines[n].trim();
             let tokenType = 'other';
+
+            // Comment found, add and continue to next line
+            if (line.charAt(0) === '#') {
+                this.addToken(new Token(tokenType, [line]), n);
+                continue;
+            }
 
             // Find the type
             Object.keys(definition).forEach(function(key) {
@@ -153,16 +173,34 @@ export default class Parser {
                 }
             });
 
+            // No relevant types matched, no need to split now, continue to next line
+            if (tokenType === 'other') {
+                this.addToken(new Token(tokenType, [line]), n);
+                continue;
+            }
+
+            // Eqns have to be on seperate lines
+            if (tokenType === DIFFERENCE_EQUATION || tokenType === DIFFERENTIAL_EQUATION) {
+                this.addToken(tokenExtractor(line, tokenType), n);
+                continue;
+            }
+
+            // Now extract types that can have multiple key-values for one line
             let parts = line.split(',');
 
             // Go through all the parts (keyword k1=v1,k2=v2,...) and extract tokens
             for (let i = 0; i < parts.length; i++) {
-                let part = parts[i];
-                let token = tokenExtractor(part, tokenType);
-                token.lineNumber = n;
-                this.tokens.push(token);
+                this.addToken(tokenExtractor(parts[i], tokenType), n);
             }
         }
+    }
+
+    /**
+     * Add token
+     */
+    addToken(token, lineNumber) {
+        token.lineNumber = lineNumber;
+        this.tokens.push(token);
     }
 
     /**
@@ -173,10 +211,10 @@ export default class Parser {
         this.output = '';
         this.tokens = [];
 
-        this.versions.push({
-            input,
-            time: new Date()
-        });
+        // this.versions.push({
+        //     input,
+        //     time: new Date()
+        // });
 
         this.parse();
     }
@@ -269,6 +307,27 @@ export default class Parser {
 
     get des() {
         return this.tokens.filter(token => token.type === DIFFERENTIAL_EQUATION || token.type === DIFFERENCE_EQUATION);
+    }
+
+    get variables() {
+        let isVariableType = (type) => (type === DIFFERENTIAL_EQUATION || type === DIFFERENCE_EQUATION || type === AUX);
+        let variables = this.tokens
+                            .filter(token => isVariableType(token.type))
+                            .map(token => token.value[0])
+                            .map(variable => {
+                                if (variable.includes('/dt')) {
+                                    // Remove first 'd' and Remove '/dt'
+                                    return variable.substring(1).replace('/dt', '');
+                                }
+
+                                if (variable.includes('\'')) {
+                                    // Remove "'"
+                                    return variable.replace('\'', '');
+                                }
+
+                                return variable;
+                            });
+        return variables;
     }
 
 }
