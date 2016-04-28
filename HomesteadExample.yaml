@@ -1,0 +1,36 @@
+---
+ip: "192.168.10.10" # IP addressed used by VM
+memory: 2048 # Memory in MB used by VM
+cpus: 1
+hostname: xpp
+name: xpp
+provider: virtualbox # If you use VMWare modify this to vmware
+
+authorize: ~/.ssh/id_rsa.pub
+
+keys:
+    - ~/.ssh/id_rsa
+
+folders:
+    - map: "/Users/Miso/Documents/Projects/xpp" # Paste path to clone repo here
+      to: "/home/vagrant/xpp" # Folder location in VM, leave as is
+
+sites:
+    - map: xpp.web
+      to: "/home/vagrant/xpp/public"
+
+databases:
+    - xppweb
+
+# blackfire:
+#     - id: foo
+#       token: bar
+#       client-id: foo
+#       client-token: bar
+
+# ports:
+#     - send: 50000
+#       to: 5000
+#     - send: 7777
+#       to: 777
+#       protocol: udp

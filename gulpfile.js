@@ -32,7 +32,7 @@ var paths = {
         './node_modules/admin-lte/build/less'
     ],
     // Proxy - used for virtual machine + browsersync
-    proxy: 'xpp.dev'
+    proxy: 'xpp.web'
 };
 
 // Detect development environment and if we are running 'watch' task
