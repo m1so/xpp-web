@@ -124,7 +124,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style>
     .editor-input-action {
         width: 20px;
     }
@@ -143,6 +143,4 @@ export default {
         margin-top: 5px;
         margin-bottom: 0px;
     }
-
-    // Change $pagination-hover etc. colors
 </style>
