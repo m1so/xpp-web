@@ -306,8 +306,8 @@
 
                 Plotly.toImage(this.$els.graph, { format: 'svg' }).then(data => {
                     let a = document.createElement('a');
-                    a.href = 'data:image/svg+xml;utf8,' + data;
-                    a.download = 'testing.svg';
+                    a.href = 'data:image/svg+xml;base64,\n' + btoa(unescape(encodeURIComponent(data)));
+                    a.download = 'XPPWeb Graph.svg';
                     a.target = '_blank';
                     document.body.appendChild(a);
                     a.click();
