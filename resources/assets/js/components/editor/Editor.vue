@@ -100,7 +100,7 @@
                 <tab header="Graphs">
                     <tabset>
                         <tab header="2D">
-                            <graph :input="document.files.result"
+                            <graph :files="document.files"
                                    :variables="variables"
                             ></graph>
                         </tab>
@@ -108,16 +108,6 @@
                             <three-dim-graph :input="document.files.result"
                                              :variables="variables"
                             ></three-dim-graph>
-                        </tab>
-                        <tab header="Direction field">
-                            <dir-graph :input="document.files.directionField"
-                                       :variables="variables"
-                            ></dir-graph>
-                        </tab>
-                        <tab header="Nullclines">
-                            <nullcline-graph :input="document.files.nullclines"
-                                             :variables="variables"
-                            ></nullcline-graph>
                         </tab>
                     </tabset>
                 </tab>
@@ -174,8 +164,6 @@ import Parser from './../../xpp/parser.js';
 import * as parserConstants from './../../xpp/constants';
 
 import Input from './InteractiveInput.vue';
-import NullclineGraph from './../graphs/NullclineGraph.vue';
-import DirGraph from './../graphs/DirGraph.vue';
 import Graph from './../graphs/Graph.vue';
 import ThreeDimensionalGraph from './../graphs/3DGraph.vue';
 
@@ -346,8 +334,6 @@ export default {
         alert,
         'sidebar': aside,
         'input-box': Input,
-        'nullcline-graph': NullclineGraph,
-        'dir-graph': DirGraph,
         'graph': Graph,
         'three-dim-graph': ThreeDimensionalGraph
     }

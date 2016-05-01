@@ -10,6 +10,7 @@
             </div>
         </div>
         <div class="col-md-2" style="padding-right: 25px;">
+            <!-- Axis control -->
             <div class="form-group">
                 <label>X axis</label>
                 <select v-model="selected.xAxis" class="form-control axis-control">
@@ -25,6 +26,7 @@
                 </select>
             </div>
 
+            <!-- Modes panel -->
             <strong>Mode</strong>
             <div class="radio">
                 <label>
@@ -47,6 +49,21 @@
                 </label>
             </div>
 
+            <!-- Overlay panel -->
+            <strong>Overlay</strong>
+            <div class="checkbox">
+                <label>
+                    <input v-model="overlay.nullclines" type="checkbox"> Nullclines
+                </label>
+            </div>
+
+            <div class="checkbox">
+                <label>
+                    <input v-model="overlay.dirField" type="checkbox"> Direction field
+                </label>
+            </div>
+
+            <!-- Buttons -->
             <button @click="createGraph(selected.xAxis, selected.yAxis, selected.type)"
                     type="button"
                     class="btn btn-block btn-primary"
@@ -69,8 +86,8 @@
 <script type="text/babel">
     export default {
         props: {
-            input: {
-                type: String,
+            files: {
+                type: Object,
                 required: true
             },
             variables: {
@@ -80,9 +97,25 @@
         },
 
         ready() {
-            this.parse();
+            this.selected.xAxis = 't';
+            this.selected.yAxis = this.variables[0];
 
             this.createGraph('t', this.variables[0], this.selected.type);
+        },
+
+        created() {
+            // Graph data does not have to be observed
+            this.data = {
+                graph: {},
+                nullclines: {
+                    x: [[], []],
+                    y: [[], []]
+                },
+                dirField: {
+                    x: [],
+                    y: []
+                }
+            };
         },
 
         data() {
@@ -90,12 +123,15 @@
                 selected: {
                     xAxis: '',
                     yAxis: '',
-                    type: 'markers'
+                    type: 'markers',
+                },
+                overlay: {
+                    nullclines: false,
+                    dirField: false
                 },
                 loading: {
                     svg: false
-                },
-                data: {}
+                }
             }
         },
 
@@ -113,10 +149,8 @@
             redraw(variables, files) {
                 let hasContent = !!this.input;
 
-                this.input = files.result;
+                this.files = files;
                 this.variables = variables;
-
-                this.parse();
 
                 let xAxis = this.selected.xAxis || 't';
                 let yAxis = this.selected.yAxis || this.variables[0];
@@ -126,14 +160,17 @@
         },
 
         methods: {
-            createGraph(xName, yName, mode = "markers", redraw = false) {
+            createGraph(xName, yName, mode = "markers", options = { redraw: false, showNullclines: false, showDirField: false}) {
                 if (this.variables.length < 1) {
                     return;
                 }
 
+                // Parse data before plotting
+                this.parse2D();
+
                 let graphData = {
-                    x: this.data[xName].values,
-                    y: this.data[yName].values,
+                    x: this.data.graph[xName].values,
+                    y: this.data.graph[yName].values,
                     mode: mode,
                     line: {
                         color: 'rgb(77, 32, 16)',
@@ -143,48 +180,120 @@
                         color: 'rgb(16, 32, 77)',
                         size: 4,
                         opacity: 0.4
-                    }
+                    },
+                    name: `${xName} vs. ${yName}`
                 };
 
+                // Combine all the traces for plotting
+                let plotData = [graphData];
+
+                if (this.overlay.nullclines) {
+                    this.parseNullclines();
+
+                    let nullclineData = [
+                        {
+                            x: this.data.nullclines.x[0],
+                            y: this.data.nullclines.y[0],
+                            name: `${this.variables[0]} nullcline`,
+                            type: 'scatter',
+                            mode: 'lines'
+                        },
+                        {
+                            x: this.data.nullclines.x[1],
+                            y: this.data.nullclines.y[1],
+                            name: `${this.variables[1]} nullcline`,
+                            type: 'scatter',
+                            mode: 'lines'
+                        }
+                    ];
+
+                    plotData.push(nullclineData[0]);
+                    plotData.push(nullclineData[1]);
+                }
+
+                if (this.overlay.dirField) {
+                    this.parseDirField();
+
+                    let dirFieldData = {
+                        x: this.data.dirField.x,
+                        y: this.data.dirField.y,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Direction field'
+                    };
+
+                    plotData.push(dirFieldData);
+                }
+
+                // Specify plot options
                 let graphOptions = {
-                    title: `${xName} vs. ${yName}`,
+                    title: `<i>${xName}</i> vs. <i>${yName}</i>`,
                     xaxis: { title: xName },
                     yaxis: { title: yName },
                     hovermode: 'closest'
                 };
 
-                if (redraw) {
-                    this.$els.graph.data[0] = graphData;
+                // Draw / redraw
+                if (options.redraw) {
+                    this.$els.graph.data = plotData;
                     this.$els.graph.layout = Object.assign(this.$els.graph.layout, graphOptions);
                     Plotly.redraw(this.$els.graph);
                 } else {
-                    Plotly.newPlot(this.$els.graph, [graphData], graphOptions);
+                    Plotly.newPlot(this.$els.graph, plotData, graphOptions, { scrollZoom: true });
                 }
             },
 
-            parse() {
+            parse2D() {
                 // Bootstrap variables + time
-                this.data['t'] = { name: 't', values: [] };
+                this.data.graph['t'] = { name: 't', values: [] };
                 this.variables.forEach(v => {
-                    this.data[v] = { name: v, values: [] };
+                    this.data.graph[v] = { name: v, values: [] };
                 });
 
                 // Grab the data
-                this.input.split('\n').forEach(line => {
+                this.files.result.split('\n').forEach(line => {
                     const lineValues = line.trim().split(' ');
 
                     lineValues.forEach((value, index) => {
                         // Time values are always in the first column
                         if (index === 0) {
-                            this.data['t'].values.push(value);
+                            this.data.graph['t'].values.push(value);
 
                             return;
                         }
 
                         // The rest is ordered by dif. equations appearance in ODE file
                         const name = this.variables[index - 1];
-                        this.data[name].values.push(value);
+                        this.data.graph[name].values.push(value);
                     })
+                });
+            },
+
+            parseNullclines() {
+                let previousTrace = 0;
+
+                this.files.nullclines.split('\n').forEach((line) => {
+                    // Format: x1 y1
+                    let row = line.trim().split(' ');
+
+                    let x = parseFloat(row[0]);
+                    let y = parseFloat(row[1]);
+                    let trace = parseInt(row[2]) - 1 || previousTrace;
+                    previousTrace = trace;
+
+                    this.data.nullclines.x[trace].push(x);
+                    this.data.nullclines.y[trace].push(y);
+                });
+            },
+
+            parseDirField() {
+                this.files.directionField.split('\n').forEach((line) => {
+                    // Format: x1 y1 x2 y2
+                    let row = line.split(' ');
+
+                    // Add x and y coordinates
+                    this.data.dirField.x.push(row[0], row[2], null);
+                    this.data.dirField.y.push(row[1], row[3], null);
                 });
             },
 
