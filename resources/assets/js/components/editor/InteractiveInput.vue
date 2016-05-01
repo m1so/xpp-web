@@ -5,7 +5,12 @@
                 {{ title }}
             </h3>
             <div class="box-tools pull-right">
-                <input type="text" v-model="search" class="form-control inputbox-search" placeholder="Search...">
+                <div class="form-inline">
+                    <button v-if="type === 'option'" @click="modal = true" class="btn btn-link">
+                        Add interactively
+                    </button>
+                    <input type="text" v-model="search" class="form-control inputbox-search" placeholder="Search...">
+                </div>
             </div>
         </div>
         <div class="box-body">
@@ -14,7 +19,8 @@
                 <tbody>
                     <tr v-for="token in searchResults">
                         <td class="editor-input">
-                            <input v-model="token.value[0]" type="text" class="form-control" placeholder="Key #{{ $index + 1 }}">
+                            <input v-model="token.value[0]" :readonly="type === 'option' ? 'true' : null"
+                                   type="text" class="form-control" placeholder="Key #{{ $index + 1 }}">
                         </td>
                         <td class="editor-input">
                             <input v-model="token.value[1]" type="text" class="form-control" placeholder="Value #{{ $index + 1 }}">
@@ -56,12 +62,52 @@
                 </ul>
             </nav>
         </div>
+
+        <modal title="Add options" :show.sync="modal" effect="zoom" width="400">
+            <div slot="modal-header" class="modal-header">
+                <h3 class="modal-title">
+                    Add or replace options
+                </h3>
+                <div class="pull-rigth">
+                    <input v-model="optionSearch" class="form-control" type="text" placeholder="Search for an option">
+                </div>
+            </div>
+            <div slot="modal-body" class="modal-body">
+                <div v-for="option in optionsMap | filterBy optionSearch in 'display' 'description'">
+                    <h4>{{ option.display }}</h4>
+
+                    <strong>Usage</strong>: {{{ option.usage }}}
+
+                    <p>{{{ option.description }}}</p>
+
+                    <div class="input-group">
+                        <input type="text" class="form-control form-inline" v-model="optionValue[$index]">
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-primary" @click="addOption(option.display, optionValue[$index])">
+                                Add/Replace {{ option.display }}
+                            </button>
+                        </span>
+                    </div>
+                    <hr>
+                </div>
+            </div>
+            <div slot="modal-footer" class="modal-footer">
+                <button type="button" class="btn btn-default" @click='modal = false'>Exit</button>
+            </div>
+        </modal>
     </div>
 </template>
 
 <script>
+import { modal } from 'vue-strap';
+import { OPTIONS_MAP, OPTION } from '../../xpp/constants';
+
 export default {
     props: ['type', 'title', 'data', 'itemsPerPage', 'parser'],
+
+    created() {
+        this.optionsMap = OPTIONS_MAP;
+    },
 
     data() {
         return {
@@ -72,7 +118,10 @@ export default {
             newField: {
                 key: null,
                 value: null
-            }
+            },
+            optionValue: Object.keys(OPTIONS_MAP).map(option => ''),
+            optionSearch: null,
+            modal: false
         };
     },
 
@@ -100,6 +149,11 @@ export default {
             this.newField.value = null;
         },
 
+        addOption(key, value) {
+            this.parser.replace(key, value, OPTION);
+            this.$dispatch('generate-input');
+        },
+
         remove(token) {
             this.parser.remove(token);
         },
@@ -120,6 +174,10 @@ export default {
             let index = this.currentPage * this.itemsPerPage;
             return list.slice(index, index + this.itemsPerPage);
         }
+    },
+
+    components: {
+        modal
     }
 }
 </script>

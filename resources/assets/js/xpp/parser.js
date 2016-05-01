@@ -206,8 +206,11 @@ export default class Parser {
     /**
      * Reparse new input and save the new version
      */
-    reparse(input) {
-        this.input = input;
+    reparse(input = null) {
+        if (input) {
+            this.input = input;
+        }
+
         this.output = '';
         this.tokens = [];
 
@@ -278,6 +281,21 @@ export default class Parser {
         token.line = lastIndex + (newLine ? 1 : 0) - (lastIndex === 0 ? 1 : 0); // if idx=0 make sure to move all the way to the top
 
         this.tokens.push(token);
+    }
+
+    replace(key, withValue, tokenType) {
+        let tokens = this.tokens.filter(token => token.type === tokenType && token.value[0].toLowerCase() === key.toLowerCase());
+
+        // If no tokens match this criteria, add new one
+        if (tokens.length === 0) {
+            this.add(key, withValue, tokenType, true);
+            return;
+        }
+
+        // In case of multiple tokens, modify the last one
+        let token = tokens[tokens.length - 1]
+        const index = this.tokens.indexOf(token);
+        this.tokens[index].value[token.value.length - 1] = withValue;
     }
 
     remove(token) {

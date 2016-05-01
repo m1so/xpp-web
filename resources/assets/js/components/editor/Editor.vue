@@ -334,6 +334,12 @@ export default {
         }
     },
 
+    events: {
+        'generate-input'() {
+            this.input = this.parser.generate();
+        }
+    },
+
     components: {
         tabset,
         tab,
