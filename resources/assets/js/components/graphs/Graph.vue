@@ -123,7 +123,7 @@
                 selected: {
                     xAxis: '',
                     yAxis: '',
-                    type: 'markers',
+                    type: 'markers'
                 },
                 overlay: {
                     nullclines: false,
@@ -160,7 +160,7 @@
         },
 
         methods: {
-            createGraph(xName, yName, mode = "markers", options = { redraw: false, showNullclines: false, showDirField: false}) {
+            createGraph(xName, yName, mode = "markers", redraw = false) {
                 if (this.variables.length < 1) {
                     return;
                 }
@@ -234,7 +234,7 @@
                 };
 
                 // Draw / redraw
-                if (options.redraw) {
+                if (redraw) {
                     this.$els.graph.data = plotData;
                     this.$els.graph.layout = Object.assign(this.$els.graph.layout, graphOptions);
                     Plotly.redraw(this.$els.graph);
