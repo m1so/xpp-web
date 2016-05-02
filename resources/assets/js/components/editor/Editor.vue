@@ -12,7 +12,11 @@
                         Save & Run
                     </button>
                 </div>
-                <h3><i v-if="loading" class="fa fa-spin fa-spinner"></i> {{ document.title }}</h3>
+                <h3>
+                    <i v-if="loading" class="fa fa-spin fa-spinner"></i>
+                    {{ document.title }}
+                    <span v-if="lastWith" class="label label-default bg-purple">{{ lastWith }}</span>
+                </h3>
             </div>
         </div>
 
@@ -222,6 +226,7 @@ export default {
                 title: '',
                 content: ''
             },
+            lastWith: null,
             loading: false,
             activeTabIndex: 0
         }
@@ -263,22 +268,30 @@ export default {
             this.parser.reparse(this.input);
         },
 
-        run() {
+        run(options = {}) {
             this.showAlert('success', 'Running!', 'Your file is being computed right now.');
 
             this.loading = true;
+
+            this.lastWith = null;
 
             this.$http.post('/api/xpp', {
                 document: {
                     input: this.input,
                     id: this.document.id
                 },
-                options: {
+                options: Object.assign({}, {
                     nullclines: true,
                     directionField: true
-                }
+                }, options)
             }).then(response => {
                 this.document = response.data.document;
+
+                if (options.with) {
+                    this.lastWith = options.with.reduce((carry, item) => {
+                        return carry + item.key + '=' + item.value + ', '
+                    }, '').replace(/,\s*$/, '');
+                }
 
                 this.$broadcast('redraw', this.variables, response.data.document.files);
 
@@ -325,6 +338,9 @@ export default {
     events: {
         'generate-input'() {
             this.input = this.parser.generate();
+        },
+        'run-with'(data) {
+            this.run({ with: data });
         }
     },
 

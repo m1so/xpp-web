@@ -29,7 +29,8 @@ class XppService
         // Options
         $options = array_replace([
             'nullclines' => false,
-            'directionField' => false
+            'directionField' => false,
+            'with' => [],
         ], $options);
 
         $relativePath = 'xppweb/'.$document->getKey();
@@ -60,6 +61,17 @@ class XppService
 
         if ($options['directionField']) {
             $client->withDirectionField();
+        }
+
+        // Reduce array of key-values to single string in format: "key1=val1;key2=val2; ..."
+        // and pass them to XPPAUT's -with flag
+        if (!empty($options['with'])) {
+            $withString = collect($options['with'])->reduce(function($result, $item) {
+                return $result.escapeshellcmd($item['key']).'='.escapeshellcmd($item['value']).';';
+            }, '');
+
+            // Remove last trailing ";"
+            $client->with(rtrim($withString, ';'));
         }
 
         $client->run();
