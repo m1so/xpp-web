@@ -190,7 +190,7 @@ export default {
 
         let lastWithStorage = localStorage.getItem('lastWith');
 
-        if (lastWithStorage) {
+        if (lastWithStorage && lastWithStorage !== 'null') {
             this.lastWith = lastWithStorage;
         }
 
@@ -201,7 +201,7 @@ export default {
         this.show.sidebar = false;
 
         // Escape => blur text area (so other keyboard shortcuts are usable)
-        window.$(this.$els.editor).keydown((e) => {
+        $(this.$els.editor).keydown((e) => {
             if (e.which === 27) {
                 this.$els.editor.blur();
             }
@@ -235,7 +235,7 @@ export default {
             lastWith: null,
             loading: false,
             activeTabIndex: 0
-        }
+        };
     },
 
     computed: {
@@ -247,15 +247,15 @@ export default {
     methods: {
         initKeyboard() {
             let shortcuts = window.Mousetrap;
-
+            /* eslint-disable no-unused-vars */
             // W => Toggle sidebar
-            shortcuts.bind(['x w'], (e) => { this.show.sidebar = !this.show.sidebar });
+            shortcuts.bind(['x w'], (e) => { this.show.sidebar = !this.show.sidebar; });
 
             // I => Toggle interactive
-            shortcuts.bind(['x i'], (e) => { this.show.interactive = !this.show.interactive });
+            shortcuts.bind(['x i'], (e) => { this.show.interactive = !this.show.interactive; });
 
             // R => Run
-            shortcuts.bind(['x r'], (e) => { this.run() });
+            shortcuts.bind(['x r'], (e) => { this.run(); });
 
             // E => Focus editor
             shortcuts.bind(['x e'], (e) => { this.$els.editor.focus(); return false; });
@@ -268,6 +268,7 @@ export default {
 
             // T G => Tab graphs (3rd)
             shortcuts.bind(['x t g'], (e) => { this.activeTabIndex = 2; });
+            /* eslint-enable no-unused-vars */
         },
 
         callParse() {
@@ -295,7 +296,7 @@ export default {
 
                 if (options.with) {
                     this.lastWith = options.with.reduce((carry, item) => {
-                        return carry + item.key + '=' + item.value + ', '
+                        return carry + item.key + '=' + item.value + ', ';
                     }, '').replace(/,\s*$/, '');
                 }
 
@@ -305,7 +306,7 @@ export default {
 
                 this.loading = false;
             }).catch(response => {
-                console.log('Failed to run', response);
+                console.log('Failed to run', response); // eslint-disable-line no-console
 
                 this.showAlert('danger', 'Error!', 'Could not run your project.');
 
@@ -313,34 +314,31 @@ export default {
             });
         },
 
-        showAlert(type, title, content, disappear = 3100) {
+        showAlert(type, title, content) {
             // Show new alert
             this.alert.type = type;
             this.alert.title = title;
             this.alert.content = content;
             this.alert.show = true;
-
-            // Clear text
-            // setTimeout(() => { this.alert = { show: false, type: '', title: '', content: ''} }, disappear);
         }
     },
 
     watch: {
         'parser.tokens': {
-            handler: function(newValue, oldValue) {
+            handler() {
                 this.input = this.parser.generate();
             },
             deep: true
         },
         'show': {
-            handler: function(newValue, oldValue) {
+            handler(newValue) {
                 // console.log('Saving options to localStorage: ', JSON.stringify(newValue));
                 localStorage.setItem('show', JSON.stringify(newValue));
             },
             deep: true
         },
         'lastWith': {
-            handler: function(newValue, oldValue) {
+            handler(newValue) {
                 localStorage.setItem('lastWith', newValue);
             }
         }
@@ -364,7 +362,7 @@ export default {
         'graph': Graph,
         'three-dim-graph': ThreeDimensionalGraph
     }
-}
+};
 
 </script>
 

@@ -7,7 +7,6 @@ import {
     DIFFERENTIAL_EQUATION,
     DIFFERENCE_EQUATION,
     IC,
-    OTHER,
     AUX
 } from './constants';
 
@@ -77,7 +76,7 @@ function simpleKeywordRemover(str, keywordsToRemove) {
     let eqn = splitEquation(str);
 
     if (eqn) {
-        return eqn.lhs.replace(removeRegex, '') + "=" + eqn.rhs;
+        return eqn.lhs.replace(removeRegex, '') + '=' + eqn.rhs;
     }
 
     return str.replace(removeRegex, '').trim();
@@ -320,7 +319,7 @@ export default class Parser {
         }
 
         // In case of multiple tokens, modify the last one
-        let token = tokens[tokens.length - 1]
+        let token = tokens[tokens.length - 1];
         const index = this.tokens.indexOf(token);
         this.tokens[index].value[token.value.length - 1] = withValue;
     }

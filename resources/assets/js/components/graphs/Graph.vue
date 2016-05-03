@@ -146,7 +146,7 @@
 <script type="text/babel">
     import { modal } from 'vue-strap';
     import { PlotStorage } from '../../xpp/plot-storage';
-    import { XppToPlotly } from '../../xpp/xpp-plotly-bridge'
+    import { XppToPlotly } from '../../xpp/xpp-plotly-bridge';
 
     export default {
         props: {
@@ -195,13 +195,13 @@
                 loading: {
                     svg: false
                 }
-            }
+            };
         },
 
         computed: {
             insufficientVariablesError() {
                 if (this.variables.length < 1) {
-                    return "You need at least 1 variable and time to draw a 2D graph."
+                    return 'You need at least 1 variable and time to draw a 2D graph.';
                 } else {
                     return null;
                 }
@@ -223,7 +223,7 @@
         },
 
         methods: {
-            createGraph(xName, yName, mode = "markers", redraw = false) {
+            createGraph(xName, yName, mode = 'markers', redraw = false) {
                 if (this.variables.length < 1) {
                     return;
                 }
@@ -260,7 +260,7 @@
                         graphOptions = Object.assign(graphOptions, {
                             title: `<i>${xName}</i> vs. <i>${yName}</i>`,
                             xaxis: { title: xName },
-                            yaxis: { title: yName },
+                            yaxis: { title: yName }
                         });
                     }
 
@@ -273,14 +273,14 @@
                         Plotly.newPlot(this.$els.graph, this.storage.all, graphOptions, { scrollZoom: true });
                     }
                 }).catch(error => {
-                    console.error(error);
+                    console.error(error); // eslint-disable-line no-console
                 });
             },
 
             startInteractiveICs() {
                 this.show.interactiveICs = true;
 
-                let canvas = $('#graph > div > div > svg:nth-child(1) > g.subplot.xy > rect');
+                let canvas = window.$('#graph > div > div > svg:nth-child(1) > g.subplot.xy > rect');
                 let graphXAxis = this.$els.graph._fullLayout.xaxis;
                 let graphYAxis = this.$els.graph._fullLayout.yaxis;
 
@@ -302,7 +302,7 @@
                 canvas.css({
                     'pointer-events': 'all',
                     'cursor': 'crosshair'
-                 });
+                });
 
                 canvas.on('click.xppweb', e => {
                     var clickPoint = {
@@ -373,7 +373,7 @@
         components: {
             modal
         }
-    }
+    };
 </script>
 
 <style>

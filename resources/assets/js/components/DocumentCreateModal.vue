@@ -25,13 +25,15 @@
 </template>
 
 <script>
+    import { modal } from 'vue-strap';
+
     export default {
         data() {
             return {
                 title: null,
                 showModal: false,
                 loading: false
-            }
+            };
         },
 
         methods: {
@@ -49,13 +51,13 @@
                     );
                 }).catch(function (response) {
                     this.loading = false;
-                    console.log('Error creating document', response.status)
-                })
+                    console.log('Error creating document', response.status); // eslint-disable-line no-console
+                });
             }
         },
 
         components: {
-            modal: require('vue-strap/dist/vue-strap.min').modal
+            modal
         }
-    }
+    };
 </script>
