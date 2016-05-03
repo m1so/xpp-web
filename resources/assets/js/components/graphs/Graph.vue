@@ -83,7 +83,7 @@
                     type="button"
                     class="btn btn-block btn-primary"
             >
-                Show
+                {{ options.freeze ? 'Add' : 'Show' }}
             </button>
 
             <button @click="show.interactiveICs ? stopInteractiveICs() : startInteractiveICs()"
@@ -168,19 +168,6 @@
         },
 
         created() {
-            // Graph data does not have to be observed
-            this.data = {
-                graph: {},
-                nullclines: {
-                    x: [[], []],
-                    y: [[], []]
-                },
-                dirField: {
-                    x: [],
-                    y: []
-                }
-            };
-
             this.storage = new PlotStorage();
             this.bridge = new XppToPlotly(this.variables);
         },
