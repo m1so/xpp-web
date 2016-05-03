@@ -19,7 +19,7 @@ import {
 const definition = {
     [PARAMETER]: {
         prefix: 'param ',
-        keywords: ['params', 'param', 'pars', 'par'],
+        keywords: ['params ', 'param ', 'pars ', 'par '],
         matcher: (part) => simpleMatcher(part, definition[PARAMETER].keywords),
         sanitizer: (part) => simpleKeywordRemover(part, definition[PARAMETER].keywords)
     },
@@ -43,7 +43,7 @@ const definition = {
     },
     [AUX]: {
         prefix: 'aux ',
-        keywords: ['aux'],
+        keywords: ['aux '],
         matcher: (part) => equationMatcher(part, definition[AUX].keywords),
         sanitizer: (part) => simpleKeywordRemover(part, definition[AUX].keywords)
     },
