@@ -70,6 +70,14 @@
                 </label>
             </div>
 
+            <!-- Options panel -->
+            <strong>Options</strong>
+            <div class="checkbox">
+                <label>
+                    <input v-model="options.freeze" type="checkbox"> Freeze plots
+                </label>
+            </div>
+
             <!-- Buttons -->
             <button @click="createGraph(selected.xAxis, selected.yAxis, selected.type)"
                     type="button"
@@ -137,6 +145,8 @@
 
 <script type="text/babel">
     import { modal } from 'vue-strap';
+    import { PlotStorage } from '../../xpp/plot-storage';
+    import { XppToPlotly } from '../../xpp/xpp-plotly-bridge'
 
     export default {
         props: {
@@ -170,6 +180,9 @@
                     y: []
                 }
             };
+
+            this.storage = new PlotStorage();
+            this.bridge = new XppToPlotly(this.variables);
         },
 
         data() {
@@ -188,6 +201,9 @@
                 overlay: {
                     nullclines: false,
                     dirField: false
+                },
+                options: {
+                    freeze: false
                 },
                 loading: {
                     svg: false
@@ -225,135 +241,52 @@
                     return;
                 }
 
-                // Parse data before plotting
-                this.parse2D();
+                // Remove storage content and only save the latest plot if we are not freezing the plot
+                if (!this.options.freeze) {
+                    this.storage.removeAll();
+                }
 
-                let graphData = {
-                    x: this.data.graph[xName].values,
-                    y: this.data.graph[yName].values,
-                    mode: mode,
-                    line: {
-                        color: 'rgb(77, 32, 16)',
-                        width: 2
-                    },
-                    marker: {
-                        color: 'rgb(16, 32, 77)',
-                        size: 4,
-                        opacity: 0.4
-                    },
-                    name: `${xName} vs. ${yName}`
-                };
-
-                // Combine all the traces for plotting
-                let plotData = [graphData];
+                let promises = [
+                    this.bridge.prepare2D(this.files.result, xName, yName, mode)
+                ];
 
                 if (this.overlay.nullclines) {
-                    this.parseNullclines();
-
-                    let nullclineData = [
-                        {
-                            x: this.data.nullclines.x[0],
-                            y: this.data.nullclines.y[0],
-                            name: `${this.variables[0]} nullcline`,
-                            type: 'scatter',
-                            mode: 'lines'
-                        },
-                        {
-                            x: this.data.nullclines.x[1],
-                            y: this.data.nullclines.y[1],
-                            name: `${this.variables[1]} nullcline`,
-                            type: 'scatter',
-                            mode: 'lines'
-                        }
-                    ];
-
-                    plotData.push(nullclineData[0]);
-                    plotData.push(nullclineData[1]);
+                    promises.push(this.bridge.prepareNullclines(this.files.nullclines));
                 }
 
                 if (this.overlay.dirField) {
-                    this.parseDirField();
+                    promises.push(this.bridge.prepareDirField(this.files.directionField));
+                }
 
-                    let dirFieldData = {
-                        x: this.data.dirField.x,
-                        y: this.data.dirField.y,
-                        type: 'scatter',
-                        mode: 'lines',
-                        name: 'Direction field'
+                // Parse and transform data for plotting asynchronously
+                Promise.all(promises).then(results => {
+                    // Add results to storage
+                    this.storage.add(results);
+
+                    // Specify plot options
+                    let graphOptions = {
+                        hovermode: 'closest'
                     };
 
-                    plotData.push(dirFieldData);
-                }
+                    // Show axes names and title only if we are not freezing the plot
+                    if (!this.options.freeze) {
+                        graphOptions = Object.assign(graphOptions, {
+                            title: `<i>${xName}</i> vs. <i>${yName}</i>`,
+                            xaxis: { title: xName },
+                            yaxis: { title: yName },
+                        });
+                    }
 
-                // Specify plot options
-                let graphOptions = {
-                    title: `<i>${xName}</i> vs. <i>${yName}</i>`,
-                    xaxis: { title: xName },
-                    yaxis: { title: yName },
-                    hovermode: 'closest'
-                };
-
-                // Draw / redraw
-                if (redraw) {
-                    this.$els.graph.data = plotData;
-                    this.$els.graph.layout = Object.assign(this.$els.graph.layout, graphOptions);
-                    Plotly.redraw(this.$els.graph);
-                } else {
-                    Plotly.newPlot(this.$els.graph, plotData, graphOptions, { scrollZoom: true });
-                }
-            },
-
-            parse2D() {
-                // Bootstrap variables + time
-                this.data.graph['t'] = { name: 't', values: [] };
-                this.variables.forEach(v => {
-                    this.data.graph[v] = { name: v, values: [] };
-                });
-
-                // Grab the data
-                this.files.result.split('\n').forEach(line => {
-                    const lineValues = line.trim().split(' ');
-
-                    lineValues.forEach((value, index) => {
-                        // Time values are always in the first column
-                        if (index === 0) {
-                            this.data.graph['t'].values.push(value);
-
-                            return;
-                        }
-
-                        // The rest is ordered by dif. equations appearance in ODE file
-                        const name = this.variables[index - 1];
-                        this.data.graph[name].values.push(value);
-                    })
-                });
-            },
-
-            parseNullclines() {
-                let previousTrace = 0;
-
-                this.files.nullclines.split('\n').forEach((line) => {
-                    // Format: x1 y1
-                    let row = line.trim().split(' ');
-
-                    let x = parseFloat(row[0]);
-                    let y = parseFloat(row[1]);
-                    let trace = parseInt(row[2]) - 1 || previousTrace;
-                    previousTrace = trace;
-
-                    this.data.nullclines.x[trace].push(x);
-                    this.data.nullclines.y[trace].push(y);
-                });
-            },
-
-            parseDirField() {
-                this.files.directionField.split('\n').forEach((line) => {
-                    // Format: x1 y1 x2 y2
-                    let row = line.split(' ');
-
-                    // Add x and y coordinates
-                    this.data.dirField.x.push(row[0], row[2], null);
-                    this.data.dirField.y.push(row[1], row[3], null);
+                    // Draw / redraw
+                    if (redraw) {
+                        this.$els.graph.data = this.storage.all;
+                        this.$els.graph.layout = Object.assign(this.$els.graph.layout, graphOptions);
+                        Plotly.redraw(this.$els.graph);
+                    } else {
+                        Plotly.newPlot(this.$els.graph, this.storage.all, graphOptions, { scrollZoom: true });
+                    }
+                }).catch(error => {
+                    console.error(error);
                 });
             },
 

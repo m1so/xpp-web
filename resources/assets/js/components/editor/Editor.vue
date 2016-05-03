@@ -188,6 +188,12 @@ export default {
             this.show = storeSettings;
         }
 
+        let lastWithStorage = localStorage.getItem('lastWith');
+
+        if (lastWithStorage) {
+            this.lastWith = lastWithStorage;
+        }
+
         this.parser.parse();
     },
 
@@ -332,6 +338,11 @@ export default {
                 localStorage.setItem('show', JSON.stringify(newValue));
             },
             deep: true
+        },
+        'lastWith': {
+            handler: function(newValue, oldValue) {
+                localStorage.setItem('lastWith', newValue);
+            }
         }
     },
 
