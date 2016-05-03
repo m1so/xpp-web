@@ -55,11 +55,31 @@ const definition = {
     }
 };
 
+function splitEquation(str) {
+    let equationRegex = /(.+?(?=\=))=(.+)/;
+    let matches = str.match(equationRegex);
+
+    if (matches && typeof matches[2] === 'string') {
+        return {
+            lhs: matches[1].trim(),
+            rhs: matches[2].trim()
+        };
+    }
+
+    return null;
+}
+
 /**
  * Remove multiples keywords from given string
  */
 function simpleKeywordRemover(str, keywordsToRemove) {
-    let removeRegex = new RegExp('(' + keywordsToRemove.join('|') + ')', 'gi')
+    let removeRegex = new RegExp('(' + keywordsToRemove.join('|') + ')', 'gi');
+    let eqn = splitEquation(str);
+
+    if (eqn) {
+        return eqn.lhs.replace(removeRegex, '') + "=" + eqn.rhs;
+    }
+
     return str.replace(removeRegex, '').trim();
 }
 
@@ -67,8 +87,14 @@ function simpleKeywordRemover(str, keywordsToRemove) {
  * Check if given string has contains at least one keyword
  */
 function simpleMatcher(str, keywords) {
+    let eqn = splitEquation(str);
+
     for (let i = 0; i < keywords.length; i++) {
         let keyword = keywords[i];
+
+        if (eqn && eqn.lhs.includes(keyword)) {
+            return true;
+        }
 
         if (str.includes(keyword)) {
             return true;
@@ -166,10 +192,11 @@ export default class Parser {
             }
 
             // Find the type
-            Object.keys(definition).forEach(function(key) {
+            Object.keys(definition).some(function(key) {
                 let entry = definition[key];
                 if (entry.matcher(line)) {
                     tokenType = key;
+                    return true; // Token type found, stop iteration
                 }
             });
 
