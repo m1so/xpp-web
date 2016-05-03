@@ -1,0 +1,7 @@
+public/
+resources/assets/js/plotly/
+resources/assets/js/main.js
+
+vendor/
+
+gulpfile.js
