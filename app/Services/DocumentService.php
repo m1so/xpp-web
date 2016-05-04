@@ -23,7 +23,7 @@ class DocumentService
         $path = 'xppweb'.DIRECTORY_SEPARATOR.$document->getKey().DIRECTORY_SEPARATOR;
         $this->storage->makeDirectory($path);
         $this->storage->put($path.'input.ode', $request->get('ode', ''));
-        
+
         return $document;
     }
 }

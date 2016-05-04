@@ -66,7 +66,7 @@ class XppService
         // Reduce array of key-values to single string in format: "key1=val1;key2=val2; ..."
         // and pass them to XPPAUT's -with flag
         if (!empty($options['with'])) {
-            $withString = collect($options['with'])->reduce(function($result, $item) {
+            $withString = collect($options['with'])->reduce(function ($result, $item) {
                 return $result.escapeshellcmd($item['key']).'='.escapeshellcmd($item['value']).';';
             }, '');
 

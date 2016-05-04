@@ -29,7 +29,9 @@ class Document extends Model
     private function getFileContent($name)
     {
         try {
-            return \Storage::drive('local')->get('xppweb'.DIRECTORY_SEPARATOR.$this->getKey().DIRECTORY_SEPARATOR.$name);
+            return \Storage::drive('local')->get(
+                'xppweb'.DIRECTORY_SEPARATOR.$this->getKey().DIRECTORY_SEPARATOR.$name
+            );
         } catch (FileNotFoundException $e) {
             return "";
         }

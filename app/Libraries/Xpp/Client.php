@@ -68,8 +68,8 @@ class Client
         $this->flags .= " -dfdraw 4";
     }
 
-    public function with($input) {
+    public function with($input)
+    {
         $this->flags .= ' -with "'.$input.'"';
     }
-
 }
