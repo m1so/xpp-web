@@ -214,11 +214,12 @@
 
                 this.files = files;
                 this.variables = variables;
+                this.bridge = new XppToPlotly(this.variables);
 
-                let xAxis = this.selected.xAxis || 't';
-                let yAxis = this.selected.yAxis || this.variables[0];
+                this.selected.xAxis = this.selected.xAxis || 't';
+                this.selected.yAxis = this.selected.yAxis || this.variables[0];
 
-                this.createGraph(xAxis, yAxis, this.selected.type, hasContent);
+                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.type, hasContent);
             }
         },
 

@@ -188,7 +188,7 @@ export default {
             this.show = storeSettings;
         }
 
-        let lastWithStorage = localStorage.getItem('lastWith');
+        let lastWithStorage = localStorage.getItem(`lastWith-${this.document.id}`);
 
         if (lastWithStorage && lastWithStorage !== 'null') {
             this.lastWith = lastWithStorage;
@@ -339,7 +339,7 @@ export default {
         },
         'lastWith': {
             handler(newValue) {
-                localStorage.setItem('lastWith', newValue);
+                localStorage.setItem(`lastWith-${this.document.id}`, newValue);
             }
         }
     },
