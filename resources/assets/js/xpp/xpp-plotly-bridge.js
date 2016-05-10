@@ -113,11 +113,9 @@ export class XppToPlotly {
             y: data[yName].values,
             mode: mode,
             line: {
-                color: 'rgb(77, 32, 16)',
                 width: 2
             },
             marker: {
-                color: 'rgb(16, 32, 77)',
                 size: 4,
                 opacity: 0.4
             },

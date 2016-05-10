@@ -1,3 +1,5 @@
+import { isEqual } from 'lodash';
+
 export class PlotStorage {
     constructor() {
         this.store = [];
@@ -8,9 +10,13 @@ export class PlotStorage {
     }
 
     add(trace, name = '') {
+        // Storage function
         let push = (trace) => {
-            trace.name = `(${this.store.length + 1}) ` + trace.name;
-            this.store.push(trace);
+            // Check if the provided trace is already stored
+            if (!this.store.some(stored => isEqual(stored.x, trace.x) && isEqual(stored.y, trace.y))) {
+                trace.name = `(${this.store.length + 1}) ` + trace.name;
+                this.store.push(trace);
+            }
         };
 
         // Save multiple traces from array or nested array
