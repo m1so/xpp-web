@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
-    protected $fillable = ['title', 'path'];
+    protected $fillable = ['title', 'folder'];
 
     protected $appends = ['files'];
 

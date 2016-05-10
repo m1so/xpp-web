@@ -13,11 +13,21 @@
                 <label>Title</label>
                 <input type="text" class="form-control" placeholder="Untitled" v-model="title">
             </div>
+
+            <div class="form-group">
+                <label>Optional: Folder name</label>
+                <input type="text" class="form-control" placeholder="Uncategorized" v-model="folder">
+            </div>
+
+            <div class="form-group">
+                <label>Optional: ODE file</label>
+                <input type="file" v-el:file>
+            </div>
         </div>
 
         <div slot="modal-footer" class="modal-footer">
             <button type="button" class="btn btn-default" @click="showModal = false">Close</button>
-            <button type="button" class="btn btn-success" @click="createDocument(title)" :disabled="loading ? 'disabled' : null">
+            <button type="button" class="btn btn-success" @click="createDocument()" :disabled="loading ? 'disabled' : null">
                 <i class="fa fa-spinner fa-spin" v-show="loading"></i> {{ loading ? 'Loading' : 'Create' }}
             </button>
         </div>
@@ -31,18 +41,28 @@
         data() {
             return {
                 title: null,
+                folder: '',
                 showModal: false,
                 loading: false
             };
         },
 
         methods: {
-            createDocument(title) {
+            createDocument() {
                 this.loading = true;
 
-                this.$http.post('documents', {
-                    title: title
-                }).then(function (response) {
+                let formData = new FormData();
+                formData.append('title', this.title);
+                formData.append('folder', this.folder);
+
+                if (this.$els.file.files.length === 1) {
+                    formData.append('ode', this.$els.file.files[0]);
+                }
+
+                this.$http.post(
+                    '/documents',
+                    formData
+                ).then(function (response) {
                     this.showModal = false;
                     this.loading = false;
 

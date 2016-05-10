@@ -31,7 +31,9 @@ Route::group(['middleware' => ['web']], function () {
 
     Route::get('documents', ['as' => 'document.list', 'uses' => 'DocumentsController@all']);
     Route::get('documents/{id}', ['as' => 'document.show', 'uses' => 'DocumentsController@show']);
-    Route::post('documents', ['uses' => 'DocumentsController@create']);
+    Route::post('documents', 'DocumentsController@create');
+    Route::delete('documents/{id}', 'DocumentsController@delete');
+    Route::put('documents/{id}', 'DocumentsController@update');
 
     /*
      * Project/document creation related pages

@@ -11,7 +11,8 @@ window.Mousetrap = require('mousetrap');
 // Components
 let components = {
     'editor': require('./components/editor/Editor.vue'),
-    'create-document-modal': require('./components/DocumentCreateModal.vue')
+    'create-document-modal': require('./components/DocumentCreateModal.vue'),
+    'documents-list': require('./components/DocumentList.vue')
 };
 
 // Root Vue instance
