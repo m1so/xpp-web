@@ -1,5 +1,7 @@
 <template>
-    <button type="button" class="btn btn-default" @click="showModal = true"><i class="fa fa-plus"></i> Create a new document</button>
+    <button type="button" class="btn btn-default" @click="openModal()">
+        <i class="fa fa-plus"></i> Create a new document
+    </button>
 
     <modal :show.sync="showModal" effect="fade" width="400">
         <div slot="modal-header" class="modal-header">
@@ -23,6 +25,13 @@
                 <label>Optional: ODE file</label>
                 <input type="file" v-el:file>
             </div>
+
+            <div v-if="errorMsg" class="callout callout-danger">
+                <h4>Validation failed!</h4>
+                <ul>
+                    <li v-for="msg in errorMsg">{{ msg }}</li>
+                </ul>
+            </div>
         </div>
 
         <div slot="modal-footer" class="modal-footer">
@@ -35,6 +44,8 @@
 </template>
 
 <script>
+    import { values } from 'lodash';
+
     import { modal } from 'vue-strap';
 
     export default {
@@ -43,13 +54,20 @@
                 title: null,
                 folder: '',
                 showModal: false,
+                errorMsg: null,
                 loading: false
             };
         },
 
         methods: {
+            openModal() {
+                this.showModal = true;
+                this.errorMsg = null;
+            },
+
             createDocument() {
                 this.loading = true;
+                this.errorMsg = null;
 
                 let formData = new FormData();
                 formData.append('title', this.title);
@@ -71,7 +89,8 @@
                     );
                 }).catch(function (response) {
                     this.loading = false;
-                    console.log('Error creating document', response.status); // eslint-disable-line no-console
+                    this.errorMsg = values(response.data);
+                    console.log('Error creating document', JSON.stringify(response.data)); // eslint-disable-line no-console
                 });
             }
         },

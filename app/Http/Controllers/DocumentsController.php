@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Document;
+use App\Http\Requests\CreateDocumentRequest;
 use App\Http\Requests\OwnsDocumentRequest;
 use App\Services\DocumentService;
 use Illuminate\Http\Request;
@@ -55,7 +56,7 @@ class DocumentsController extends Controller
     /*
      * Create a new document via API
      */
-    public function create(Request $request)
+    public function create(CreateDocumentRequest $request)
     {
         $document = $this->documentService->create($request);
 
