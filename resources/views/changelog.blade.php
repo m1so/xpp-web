@@ -5,29 +5,24 @@
 
 @section('content')
 
-        <div class="box">
-            <div class="box-header with-border">
-                <h3 class="box-title">v0.0.2 - 10.10.2015</h3>
-            </div><!-- /.box-header -->
-            <div class="box-body">
-                <ul>
-                    <li>Created basic layout with AdminLTE theme</li>
-                </ul>
-            </div><!-- /.box-body -->
-        </div><!-- /.box -->
+<div class="col-md-12">
+    {{-- Beta release v0.1.0 --}}
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">Beta release - May 12<sup>th</sup> 2016</h3>
+        </div>
+        <div class="box-body">
+            <h4>v0.1.0</h4>
+            <ul>
+                <li>Interactive ODE editor</li>
+                <li>Plotting - 2D, 3D, nullclines, direction fields</li>
+                <li>Click for intial conditions on 2D plot</li>
+                <li>Document organization and folders</li>
+            </ul>
 
-        <div class="box">
-            <div class="box-header with-border">
-                <h3 class="box-title">v0.0.1 - 29.6.2015</h3>
-            </div><!-- /.box-header -->
-            <div class="box-body">
-                <ul>
-                    <li>Laravel 5.1 setup</li>
-                    <li>Gulp build setup</li>
-                </ul>
-
-                Github: <a href="http://www.github.com/m1so/xpp" target="_blank">m1so/xpp</a>
-            </div><!-- /.box-body -->
-        </div><!-- /.box -->
+            <strong>Source</strong>: <a href="http://www.github.com/m1so/xpp-web" target="_blank">m1so/xpp-web</a>
+        </div>
+    </div>
+</div>
 
 @endsection
