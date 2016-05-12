@@ -300,7 +300,9 @@ export default {
                     }, '').replace(/,\s*$/, '');
                 }
 
-                this.$broadcast('redraw', this.variables, response.data.document.files);
+                this.$broadcast('redraw', this.variables, response.data.document.files, {
+                    lastWith: this.lastWith
+                });
 
                 this.showAlert('success', 'Finished!', 'Computations have successfully finished.');
 

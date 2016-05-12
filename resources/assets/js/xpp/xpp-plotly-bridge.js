@@ -3,11 +3,11 @@ export class XppToPlotly {
         this.variables = variables;
     }
 
-    prepare2D(file, xName, yName, mode) {
+    prepare2D(file, xName, yName, mode, lastWith = '') {
         return new Promise((resolve, reject) => {
             try {
                 let data = this.parse2D(file);
-                resolve(this.transform2D(data, xName, yName, mode));
+                resolve(this.transform2D(data, xName, yName, mode, lastWith));
             } catch (error) {
                 reject(error);
             }
@@ -107,7 +107,7 @@ export class XppToPlotly {
         return data;
     }
 
-    transform2D(data, xName, yName, mode) {
+    transform2D(data, xName, yName, mode, lastWith = '') {
         return {
             x: data[xName].values,
             y: data[yName].values,
@@ -119,7 +119,7 @@ export class XppToPlotly {
                 size: 4,
                 opacity: 0.4
             },
-            name: `${xName} vs. ${yName}`
+            name: `${xName} vs. ${yName}` + (lastWith ? `<br>[${lastWith}]` : '')
         };
     }
 

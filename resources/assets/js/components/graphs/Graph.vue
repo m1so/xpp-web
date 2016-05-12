@@ -79,7 +79,7 @@
             </div>
 
             <!-- Buttons -->
-            <button @click="createGraph(selected.xAxis, selected.yAxis, selected.type, options.freeze)"
+            <button @click="createGraph(selected.xAxis, selected.yAxis, selected.type, { redraw: options.freeze })"
                     type="button"
                     class="btn btn-block btn-primary"
             >
@@ -208,7 +208,7 @@
         },
 
         events: {
-            redraw(variables, files) {
+            redraw(variables, files, options) {
                 this.files = files;
                 this.variables = variables;
                 this.bridge = new XppToPlotly(this.variables);
@@ -216,12 +216,15 @@
                 this.selected.xAxis = this.selected.xAxis || 't';
                 this.selected.yAxis = this.selected.yAxis || this.variables[0];
 
-                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.type, true);
+                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.type, {
+                    redraw: true,
+                    lastWith: options.lastWith
+                });
             }
         },
 
         methods: {
-            createGraph(xName, yName, mode = 'markers', redraw = false) {
+            createGraph(xName, yName, mode = 'markers', { redraw = false, lastWith = '' } = {}) {
                 if (this.variables.length < 1) {
                     return;
                 }
@@ -234,7 +237,7 @@
                 }
 
                 let promises = [
-                    this.bridge.prepare2D(this.files.result, xName, yName, mode)
+                    this.bridge.prepare2D(this.files.result, xName, yName, mode, lastWith)
                 ];
 
                 if (this.overlay.nullclines) {
