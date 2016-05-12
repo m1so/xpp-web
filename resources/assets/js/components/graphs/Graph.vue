@@ -79,7 +79,7 @@
             </div>
 
             <!-- Buttons -->
-            <button @click="createGraph(selected.xAxis, selected.yAxis, selected.type)"
+            <button @click="createGraph(selected.xAxis, selected.yAxis, selected.type, options.freeze)"
                     type="button"
                     class="btn btn-block btn-primary"
             >
@@ -210,8 +210,6 @@
 
         events: {
             redraw(variables, files) {
-                let hasContent = !!this.input;
-
                 this.files = files;
                 this.variables = variables;
                 this.bridge = new XppToPlotly(this.variables);
@@ -219,7 +217,7 @@
                 this.selected.xAxis = this.selected.xAxis || 't';
                 this.selected.yAxis = this.selected.yAxis || this.variables[0];
 
-                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.type, hasContent);
+                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.type, true);
             }
         },
 
@@ -228,6 +226,8 @@
                 if (this.variables.length < 1) {
                     return;
                 }
+
+                this.$dispatch('plotting-started');
 
                 // Remove storage content and only save the latest plot if we are not freezing the plot
                 if (!this.options.freeze) {
@@ -265,15 +265,24 @@
                         });
                     }
 
-                    // Draw / redraw
+                    // Draw / redraw (setTimeout prevents DOM freezing on initial load)
                     if (redraw) {
                         this.$els.graph.data = this.storage.all;
                         this.$els.graph.layout = Object.assign(this.$els.graph.layout, graphOptions);
-                        Plotly.redraw(this.$els.graph);
+                        setTimeout(() => {
+                            Plotly.redraw(this.$els.graph).then(() => {
+                                this.$dispatch('plotting-finished');
+                            });
+                        }, 0);
                     } else {
-                        Plotly.newPlot(this.$els.graph, this.storage.all, graphOptions, { scrollZoom: true });
+                        setTimeout(() => {
+                            Plotly.newPlot(this.$els.graph, this.storage.all, graphOptions, { scrollZoom: true }).then(() => {
+                                this.$dispatch('plotting-finished');
+                            });
+                        }, 0);
                     }
                 }).catch(error => {
+                    this.$dispatch('plotting-finished');
                     console.error(error); // eslint-disable-line no-console
                 });
             },

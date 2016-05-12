@@ -350,6 +350,14 @@ export default {
         },
         'run-with'(data) {
             this.run({ with: data });
+        },
+        'plotting-started'() {
+            console.log('loading');
+            this.loading = true;
+        },
+        'plotting-finished'() {
+            console.log('finished');
+            this.loading = false;
         }
     },
 
