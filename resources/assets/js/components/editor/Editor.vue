@@ -296,7 +296,7 @@ export default {
 
                 if (options.with) {
                     this.lastWith = options.with.reduce((carry, item) => {
-                        return carry + item.key + '=' + item.value + ', ';
+                        return carry + item.key + '=' + item.value.toFixed(3) + ', ';
                     }, '').replace(/,\s*$/, '');
                 }
 
@@ -352,11 +352,9 @@ export default {
             this.run({ with: data });
         },
         'plotting-started'() {
-            console.log('loading');
             this.loading = true;
         },
         'plotting-finished'() {
-            console.log('finished');
             this.loading = false;
         }
     },

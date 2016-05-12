@@ -20,13 +20,13 @@
             <!-- Axis control -->
             <div class="form-group">
                 <label>X axis</label>
-                <select v-model="selected.xAxis" class="form-control axis-control">
+                <select v-model="selected.xAxis" class="form-control axis-control" :disabled="show.interactiveICs">
                     <option selected>t</option>
                     <option v-for="name in variables">{{ name }}</option>
                 </select>
 
                 <label>Y axis</label>
-                <select v-model="selected.yAxis" class="form-control axis-control">
+                <select v-model="selected.yAxis" class="form-control axis-control" :disabled="show.interactiveICs">
                     <option>t</option>
                     <option selected>{{ variables[0] }}</option>
                     <option v-for="name in variables.slice(1)">{{ name }}</option>
@@ -106,25 +106,20 @@
 
             <modal title="Confirm selected initial conditions" :show.sync="show.icsModal" effect="zoom">
                 <div slot="modal-body" class="modal-body">
-                    <div v-if="selected.xAxis === 't' || selected.yAxis === 't'" class="callout callout-warning">
-                        <h4>Watch out!</h4>
-                        <p>
-                            One of your axes is set to display <strong>t</strong>. Are you sure you did not want
-                            to select <strong>{{ variables.join(' or ') }}</strong>?
-                        </p>
-                    </div>
                     <p>
                         Initial conditions for other variables will be set from your ODE input,
                         only the selected ones will be used
                         (<em>note that they will not be replaced in your ODE input</em>).
                     </p>
                     <p class="lead">
-                        <strong>{{ selected.xAxis }}</strong>: {{ ics ? ics.x.toFixed(3) : '' }} <br>
-                        <strong>{{ selected.yAxis }}</strong>: {{ ics ? ics.y.toFixed(3) : '' }}
-                    </p>
-                    <p>
-                        If you wish to change {{ selected.xAxis }} or {{ selected.yAxis }} values,
-                        close this window by pressing x in the upper right corner or click on the plot again.
+                        <div class="form-group" v-show="selected.xAxis !== 't'">
+                            <label>{{ selected.xAxis }}</label>
+                            <input v-model="ics.x" type="number" step="any" class="form-control">
+                        </div>
+                        <div class="form-group" v-show="selected.yAxis !== 't'">
+                            <label>{{ selected.yAxis }}</label>
+                            <input v-model="ics.y" type="number" step="any" class="form-control">
+                        </div>
                     </p>
                 </div>
                 <div slot="modal-footer" class="modal-footer">
@@ -133,7 +128,6 @@
                     </button>
                     <button type="button" class="btn btn-success"
                             @click="runInteractiveICs()"
-                            :disabled="selected.xAxis === 't' || selected.yAxis === 't'"
                     >
                         Run
                     </button>
@@ -147,6 +141,11 @@
     import { modal } from 'vue-strap';
     import { PlotStorage } from '../../xpp/plot-storage';
     import { XppToPlotly } from '../../xpp/xpp-plotly-bridge';
+
+    const emptyICs = {
+        x: null,
+        y: null
+    };
 
     export default {
         props: {
@@ -178,7 +177,7 @@
                     interactiveICs: false,
                     icsModal: false
                 },
-                ics: null,
+                ics: emptyICs,
                 lastICs: null,
                 selected: {
                     xAxis: '',
@@ -320,10 +319,15 @@
                         y: parseInt(e.offsetY) - canvas[0].y.baseVal.value
                     };
 
-                    this.ics = {
-                        x: clickPoint.x * 1.0 / axisValues.x.length * axisValues.x.range + axisValues.x.min,
-                        y: axisValues.y.max - clickPoint.y * 1.0 / axisValues.y.length * axisValues.y.range
-                    };
+                    this.ics = emptyICs;
+
+                    if (this.selected.xAxis !== 't') {
+                        this.ics.x = clickPoint.x * 1.0 / axisValues.x.length * axisValues.x.range + axisValues.x.min;
+                    }
+
+                    if (this.selected.yAxis !== 't') {
+                        this.ics.y = axisValues.y.max - clickPoint.y * 1.0 / axisValues.y.length * axisValues.y.range;
+                    }
 
                     this.show.icsModal = true;
                 });
@@ -341,20 +345,27 @@
 
                 this.show.icsModal = false;
                 this.show.interactiveICs = false;
-                this.ics = null;
+                this.ics = emptyICs;
             },
 
             runInteractiveICs() {
-                this.$dispatch('run-with', [
-                    {
+                let withParams = [];
+
+                if (this.selected.xAxis !== 't' && this.ics.x) {
+                    withParams.push({
                         key: this.selected.xAxis,
-                        value: this.ics.x.toFixed(3)
-                    },
-                    {
+                        value: parseFloat(this.ics.x)
+                    });
+                }
+
+                if (this.selected.yAxis !== 't' && this.ics.y) {
+                    withParams.push({
                         key: this.selected.yAxis,
-                        value: this.ics.y.toFixed(3)
-                    }
-                ]);
+                        value: parseFloat(this.ics.y)
+                    });
+                }
+
+                this.$dispatch('run-with', withParams);
 
                 this.stopInteractiveICs();
             },
