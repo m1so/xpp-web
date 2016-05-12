@@ -17,7 +17,7 @@
                                 <a href="/documents/{{ document.id }}" class="text-black">{{ document.title }}</a>
                                 <button @click="remove(document)" type="button" class="btn btn-xs btn-danger btn-doc-list pull-right">Delete</button>
                                 <button @click="edit(document)" type="button" class="btn btn-xs bg-yellow btn-doc-list pull-right">Edit</button>
-                                <a href="/documents/{{ document.id }}" type="button" class="btn btn-xs btn-primary btn-doc-list pull-right">Show</a>
+                                <a href="/documents/{{ document.id }}" type="button" class="btn btn-xs btn-primary btn-doc-list pull-right">Open in editor</a>
                             </li>
                         </ul>
                         <hr>
