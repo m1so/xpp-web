@@ -40,13 +40,19 @@ class Client
     }
 
 
-    public function run()
+    public function run($options = [])
     {
+        // Options
+        $options = array_replace([
+            'noout' => false
+        ], $options);
+
         $command = sprintf(
-            "cd %s && %s %s -silent -outfile result.dat -logfile xpp.log %s",
+            "cd %s && %s %s -silent %s -logfile xpp.log %s",
             escapeshellarg($this->basePath),
             $this->xppPath,
             escapeshellarg($this->basePath.'/input.ode'),
+            $options['noout'] ? '-noout' : '-outfile result.dat',
             $this->flags
         );
 
@@ -66,6 +72,11 @@ class Client
     public function withDirectionField()
     {
         $this->flags .= " -dfdraw 4";
+    }
+
+    public function withEquilibria()
+    {
+        $this->flags .= " -equil 0";
     }
 
     public function with($input)

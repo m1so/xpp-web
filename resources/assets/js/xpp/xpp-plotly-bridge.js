@@ -36,6 +36,17 @@ export class XppToPlotly {
         });
     }
 
+    prepareEquilibria(file) {
+        return new Promise((resolve, reject) => {
+            try {
+                let data = this.parseEquilibria(file);
+                resolve(this.transformEquilibria(data));
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
     parse2D(file) {
         // Bootstrap variables + time
         let data = {};
@@ -107,6 +118,33 @@ export class XppToPlotly {
         return data;
     }
 
+    parseEquilibria(file) {
+        const lines = file.split('\n');
+        const xLine = lines[0].split(' ');
+        const yLine = lines[1].split(' ');
+        const decimals = 3;
+
+        const x = {
+            coordinate: parseFloat(xLine[0]).toFixed(decimals),
+            real: parseFloat(xLine[1]).toFixed(decimals),
+            imaginary: parseFloat(xLine[2]).toFixed(decimals)
+        };
+
+        const y = {
+            coordinate: parseFloat(yLine[0]).toFixed(decimals),
+            real: parseFloat(yLine[1]).toFixed(decimals),
+            imaginary: parseFloat(yLine[2]).toFixed(decimals)
+        };
+
+        return {
+            x: [x.coordinate],
+            y: [y.coordinate],
+            text: `Equilibrium [${x.coordinate},${y.coordinate}]<br>` +
+                  `Re(x)=${x.real}, Im(x)=${x.imaginary}<br>` +
+                  `Re(y)=${y.real}, Im(y)=${y.imaginary}`
+        };
+    }
+
     transform2D(data, xName, yName, mode, lastWith = '') {
         return {
             x: data[xName].values,
@@ -149,6 +187,18 @@ export class XppToPlotly {
             type: 'scatter',
             mode: 'lines',
             name: 'Direction field'
+        };
+    }
+
+    transformEquilibria(data) {
+        return {
+            x: data.x,
+            y: data.y,
+            name: data.text,
+            marker: {
+                size: 8,
+                symbol: 'circle-open'
+            }
         };
     }
 }

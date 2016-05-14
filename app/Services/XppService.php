@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Document;
 use App\Libraries\Xpp\Client;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Support\Collection;
 
 class XppService
 {
@@ -30,13 +31,14 @@ class XppService
         $options = array_replace([
             'nullclines' => false,
             'directionField' => false,
+            'equilibria' => false,
             'with' => [],
         ], $options);
 
         $relativePath = 'xppweb/'.$document->getKey();
         $path = storage_path('app/'.$relativePath);
 
-        $this->cleanDirectory($relativePath);
+        $this->cleanDirectory($relativePath, $options);
 
         $this->saveOdeFile($relativePath, $input);
 
@@ -74,6 +76,15 @@ class XppService
             $client->with(rtrim($withString, ';'));
         }
 
+        // If we want to get equilibria, we generally don't want to integrate
+        // the ODE file with "-with" options provided, this means we have to
+        // add "-noout", so XPP only generates equilibria file "equil.dat"
+        if ($options['equilibria']) {
+            $client->withEquilibria();
+            $client->run(['noout' => true]);
+            return;
+        }
+
         $client->run();
     }
 
@@ -90,10 +101,34 @@ class XppService
         $this->storage->put($odePath, $input);
     }
 
-    private function cleanDirectory($path)
+    private function cleanDirectory($path, $options)
     {
-        // Remove all contents before new run and create a fresh directory
-        $this->storage->deleteDirectory($path);
-        $this->storage->makeDirectory($path);
+        // Delete these files by default
+        $filesToDelete = [
+            Document::RESULT_FILE_NAME,
+            Document::LOG_FILE_NAME,
+            Document::NULLCLINES_FILE_NAME,
+            Document::DIRFIELDS_FILE_NAME,
+            Document::EQUILIBRIA_FILE_NAME,
+        ];
+
+        // Items in this array will not be deleted
+        $filesToKeep = [];
+
+        // If we run with equilibria, we want to keep these files from previous run since we only generate "equil.dat"
+        if ($options['equilibria']) {
+            $filesToKeep[] = Document::RESULT_FILE_NAME;
+            $filesToKeep[] = Document::NULLCLINES_FILE_NAME;
+            $filesToKeep[] = Document::DIRFIELDS_FILE_NAME;
+        }
+
+        // Perform deletion
+        (new Collection($filesToDelete))->diff($filesToKeep)->each(function($file) use ($path) {
+            $filePath = $path.DIRECTORY_SEPARATOR.$file;
+
+            if ($this->storage->exists($filePath)) {
+                $this->storage->delete($filePath);
+            }
+        });
     }
 }

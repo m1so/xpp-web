@@ -21,6 +21,8 @@ class Document extends Model
 
     const DIRFIELDS_FILE_NAME = 'dirfields.dat';
 
+    const EQUILIBRIA_FILE_NAME = 'equil.dat';
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -62,6 +64,11 @@ class Document extends Model
         return $this->getFileContent(self::DIRFIELDS_FILE_NAME);
     }
 
+    public function equilibriaFile()
+    {
+        return $this->getFileContent(self::EQUILIBRIA_FILE_NAME);
+    }
+
     // Accessors
 
     /**
@@ -77,6 +84,7 @@ class Document extends Model
             'log' => $this->logFile(),
             'nullclines' => $this->nullclinesFile(),
             'directionField' => $this->directionFieldsFile(),
+            'equilibria' => $this->equilibriaFile(),
         ];
     }
 }

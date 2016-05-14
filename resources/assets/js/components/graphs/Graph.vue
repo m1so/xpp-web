@@ -1,9 +1,9 @@
 <template>
     <div class="row">
         <div class="col-md-10">
-            <div v-show="show.interactiveICs" transition="expand" class="callout callout-ics bg-purple">
+            <div v-show="show.ics.interactive" transition="expand" class="callout callout-ics bg-purple">
                 <h4>
-                    <i v-if="show.interactiveICs" class="fa fa-spin fa-spinner"></i>
+                    <i v-if="show.ics.interactive" class="fa fa-spin fa-spinner"></i>
                     Interactive ICs in progress
                 </h4>
                 <p>Please click somewhere in the plot to continue.</p>
@@ -20,13 +20,13 @@
             <!-- Axis control -->
             <div class="form-group">
                 <label>X axis</label>
-                <select v-model="selected.xAxis" class="form-control axis-control" :disabled="show.interactiveICs">
+                <select v-model="selected.xAxis" class="form-control axis-control" :disabled="show.ics.interactive || show.equil.interactive">
                     <option selected>t</option>
                     <option v-for="name in variables">{{ name }}</option>
                 </select>
 
                 <label>Y axis</label>
-                <select v-model="selected.yAxis" class="form-control axis-control" :disabled="show.interactiveICs">
+                <select v-model="selected.yAxis" class="form-control axis-control" :disabled="show.ics.interactive || show.equil.interactive">
                     <option>t</option>
                     <option selected>{{ variables[0] }}</option>
                     <option v-for="name in variables.slice(1)">{{ name }}</option>
@@ -57,16 +57,24 @@
             </div>
 
             <!-- Overlay panel -->
-            <strong>Overlay</strong>
-            <div class="checkbox">
+            <strong v-if="files.nullclines || files.directionField || files.equilibria">
+                Overlay
+            </strong>
+            <div class="checkbox" v-if="files.nullclines">
                 <label>
                     <input v-model="overlay.nullclines" type="checkbox"> Nullclines
                 </label>
             </div>
 
-            <div class="checkbox">
+            <div class="checkbox" v-if="files.directionField">
                 <label>
                     <input v-model="overlay.dirField" type="checkbox"> Direction field
+                </label>
+            </div>
+
+            <div class="checkbox" v-if="files.equilibria">
+                <label>
+                    <input v-model="overlay.equilibrium" type="checkbox"> Equilibria
                 </label>
             </div>
 
@@ -86,13 +94,23 @@
                 {{ options.freeze ? 'Add' : 'Show' }}
             </button>
 
-            <button @click="show.interactiveICs ? stopInteractiveICs() : startInteractiveICs()"
-                    :class="show.interactiveICs ? 'btn-warning' : 'bg-purple'"
+            <button @click="show.ics.interactive ? stopInteractiveClick('ics') : startInteractiveClick('ics')"
+                    :class="show.ics.interactive ? 'btn-warning' : 'bg-purple'"
                     type="button"
                     class="btn btn-block"
             >
-                <i v-if="show.interactiveICs" class="fa fa-spin fa-spinner"></i>
-                {{ show.interactiveICs ? 'Stop' : 'Start' }} interactive ICs
+                <i v-if="show.ics.interactive" class="fa fa-spin fa-spinner"></i>
+                {{ show.ics.interactive ? 'Stop' : 'Start' }} interactive ICs
+            </button>
+
+            <button @click="show.equil.interactive ? stopInteractiveClick('equil') : startInteractiveClick('equil')"
+                    :class="show.equil.interactive ? 'btn-warning' : 'bg-teal'"
+                    type="button"
+                    class="btn btn-block"
+            >
+                <i v-if="show.equil.interactive" class="fa fa-spin fa-spinner"></i>
+                {{ show.equil.interactive ? 'Stop' : 'Start' }} equilibria
+                <template v-if=""></template>
             </button>
 
             <button @click="download()"
@@ -104,7 +122,8 @@
                 Export{{ loading.svg ? 'ing': '' }} as SVG
             </button>
 
-            <modal title="Confirm selected initial conditions" :show.sync="show.icsModal" effect="zoom">
+            <!-- Interactive INITIAL CONDITIONS modal -->
+            <modal title="Confirm selected initial conditions" :show.sync="show.ics.modal" effect="zoom">
                 <div slot="modal-body" class="modal-body">
                     <p>
                         Initial conditions for other variables will be set from your ODE input,
@@ -114,20 +133,46 @@
                     <p class="lead">
                         <div class="form-group" v-show="selected.xAxis !== 't'">
                             <label>{{ selected.xAxis }}</label>
-                            <input v-model="ics.x" type="number" step="any" class="form-control">
+                            <input v-model="coordinates.x" type="number" step="any" class="form-control">
                         </div>
                         <div class="form-group" v-show="selected.yAxis !== 't'">
                             <label>{{ selected.yAxis }}</label>
-                            <input v-model="ics.y" type="number" step="any" class="form-control">
+                            <input v-model="coordinates.y" type="number" step="any" class="form-control">
                         </div>
                     </p>
                 </div>
                 <div slot="modal-footer" class="modal-footer">
-                    <button type="button" class="btn btn-danger" @click="stopInteractiveICs()">
+                    <button type="button" class="btn btn-danger" @click="stopInteractiveClick('ics')">
                         Stop selecting ICs
                     </button>
                     <button type="button" class="btn btn-success"
-                            @click="runInteractiveICs()"
+                            @click="runInteractiveClick('ics')"
+                    >
+                        Run
+                    </button>
+                </div>
+            </modal>
+
+            <!-- Interactive EQUILIB. modal -->
+            <modal title="Confirm selected coordinates" :show.sync="show.equil.modal" effect="zoom">
+                <div slot="modal-body" class="modal-body">
+                    <p class="lead">
+                        <div class="form-group" v-show="selected.xAxis !== 't'">
+                            <label>{{ selected.xAxis }}</label>
+                            <input v-model="coordinates.x" type="number" step="any" class="form-control">
+                        </div>
+                        <div class="form-group" v-show="selected.yAxis !== 't'">
+                            <label>{{ selected.yAxis }}</label>
+                            <input v-model="coordinates.y" type="number" step="any" class="form-control">
+                        </div>
+                    </p>
+                </div>
+                <div slot="modal-footer" class="modal-footer">
+                    <button type="button" class="btn btn-danger" @click="stopInteractiveClick('equil')">
+                        Stop selecting
+                    </button>
+                    <button type="button" class="btn btn-success"
+                            @click="runInteractiveClick('equil')"
                     >
                         Run
                     </button>
@@ -141,8 +186,9 @@
     import { modal } from 'vue-strap';
     import { PlotStorage } from '../../xpp/plot-storage';
     import { XppToPlotly } from '../../xpp/xpp-plotly-bridge';
+    import { clickHandler, clickUnregister } from '../../xpp/interactive-click';
 
-    const emptyICs = {
+    const emptyCoordinates = {
         x: null,
         y: null
     };
@@ -174,17 +220,23 @@
         data() {
             return {
                 show: {
-                    interactiveICs: false,
-                    icsModal: false
+                    ics: {
+                        interactive: false,
+                        modal: false
+                    },
+                    equil: {
+                        interactive: false,
+                        modal: false
+                    }
                 },
-                ics: emptyICs,
-                lastICs: null,
+                coordinates: emptyCoordinates,
                 selected: {
                     xAxis: '',
                     yAxis: '',
                     type: 'markers'
                 },
                 overlay: {
+                    equilibrium: false,
                     nullclines: false,
                     dirField: false
                 },
@@ -212,6 +264,7 @@
                 this.files = files;
                 this.variables = variables;
                 this.bridge = new XppToPlotly(this.variables);
+                this.overlay.equilibrium = Boolean(files.equilibria);
 
                 this.selected.xAxis = this.selected.xAxis || 't';
                 this.selected.yAxis = this.selected.yAxis || this.variables[0];
@@ -240,12 +293,16 @@
                     this.bridge.prepare2D(this.files.result, xName, yName, mode, lastWith)
                 ];
 
-                if (this.overlay.nullclines) {
+                if (this.overlay.nullclines && this.files.nullclines) {
                     promises.push(this.bridge.prepareNullclines(this.files.nullclines));
                 }
 
-                if (this.overlay.dirField) {
+                if (this.overlay.dirField && this.files.directionField) {
                     promises.push(this.bridge.prepareDirField(this.files.directionField));
+                }
+
+                if (this.overlay.equilibrium && this.files.equilibria) {
+                    promises.push(this.bridge.prepareEquilibria(this.files.equilibria));
                 }
 
                 // Parse and transform data for plotting asynchronously
@@ -289,88 +346,46 @@
                 });
             },
 
-            startInteractiveICs() {
-                this.show.interactiveICs = true;
+            startInteractiveClick(name) {
+                this.show[name].interactive = true;
 
-                let canvas = window.$('#graph > div > div > svg:nth-child(1) > g.subplot.xy > rect');
-                let graphXAxis = this.$els.graph._fullLayout.xaxis;
-                let graphYAxis = this.$els.graph._fullLayout.yaxis;
+                clickHandler.call(this, (e, clickCoordinate) => {
+                    this.coordinates = clickCoordinate;
 
-                let axisValues = {
-                    x: {
-                        max: graphXAxis.range[1],
-                        min: graphXAxis.range[0],
-                        length: graphXAxis._length,
-                        range: graphXAxis.range[1] + Math.abs(graphXAxis.range[0])
-                    },
-                    y: {
-                        max: graphYAxis.range[1],
-                        min: graphYAxis.range[0],
-                        length: graphYAxis._length,
-                        range: graphYAxis.range[1] + Math.abs(graphYAxis.range[0])
-                    }
-                };
-
-                canvas.css({
-                    'pointer-events': 'all',
-                    'cursor': 'crosshair'
-                });
-
-                canvas.on('click.xppweb', e => {
-                    var clickPoint = {
-                        x: parseInt(e.offsetX) - canvas[0].x.baseVal.value,
-                        y: parseInt(e.offsetY) - canvas[0].y.baseVal.value
-                    };
-
-                    this.ics = emptyICs;
-
-                    if (this.selected.xAxis !== 't') {
-                        this.ics.x = clickPoint.x * 1.0 / axisValues.x.length * axisValues.x.range + axisValues.x.min;
-                    }
-
-                    if (this.selected.yAxis !== 't') {
-                        this.ics.y = axisValues.y.max - clickPoint.y * 1.0 / axisValues.y.length * axisValues.y.range;
-                    }
-
-                    this.show.icsModal = true;
+                    this.show[name].modal = true;
                 });
             },
 
-            stopInteractiveICs() {
-                let canvas = $('#graph > div > div > svg:nth-child(1) > g.subplot.xy > rect');
+            stopInteractiveClick(name) {
+                clickUnregister();
 
-                canvas.css({
-                    'pointer-events': 'none',
-                    'cursor': 'auto'
-                });
-
-                canvas.unbind('click.xppweb');
-
-                this.show.icsModal = false;
-                this.show.interactiveICs = false;
-                this.ics = emptyICs;
+                this.show[name].modal = false;
+                this.show[name].interactive = false;
+                this.coordinates = emptyCoordinates;
             },
 
-            runInteractiveICs() {
+            runInteractiveClick(name) {
                 let withParams = [];
 
-                if (this.selected.xAxis !== 't' && this.ics.x) {
+                if (this.selected.xAxis !== 't' && this.coordinates.x) {
                     withParams.push({
                         key: this.selected.xAxis,
-                        value: parseFloat(this.ics.x)
+                        value: parseFloat(this.coordinates.x)
                     });
                 }
 
-                if (this.selected.yAxis !== 't' && this.ics.y) {
+                if (this.selected.yAxis !== 't' && this.coordinates.y) {
                     withParams.push({
                         key: this.selected.yAxis,
-                        value: parseFloat(this.ics.y)
+                        value: parseFloat(this.coordinates.y)
                     });
                 }
 
-                this.$dispatch('run-with', withParams);
+                this.$dispatch('run-with', withParams, {
+                    equilibria: name === 'equil'
+                });
 
-                this.stopInteractiveICs();
+                this.stopInteractiveClick(name);
             },
 
             /**

@@ -294,7 +294,7 @@ export default {
             }).then(response => {
                 this.document = response.data.document;
 
-                if (options.with) {
+                if (options.with && !options.equilibria) {
                     this.lastWith = options.with.reduce((carry, item) => {
                         return carry + item.key + '=' + item.value.toFixed(3) + ', ';
                     }, '').replace(/,\s*$/, '');
@@ -350,8 +350,11 @@ export default {
         'generate-input'() {
             this.input = this.parser.generate();
         },
-        'run-with'(data) {
-            this.run({ with: data });
+        'run-with'(data, options) {
+            this.run({
+                with: data,
+                equilibria: options.equilibria
+            });
         },
         'plotting-started'() {
             this.loading = true;
