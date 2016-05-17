@@ -14,6 +14,17 @@ export class XppToPlotly {
         });
     }
 
+    prepare3D(file, xName, yName, zName) {
+        return new Promise((resolve, reject) => {
+            try {
+                let data = this.parse3D(file);
+                resolve(this.transform3D(data, xName, yName, zName));
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
     prepareNullclines(file) {
         return new Promise((resolve, reject) => {
             try {
@@ -72,6 +83,35 @@ export class XppToPlotly {
                 const name = this.variables[index - 1];
                 data[name].values.push(value);
             }
+        });
+
+        return data;
+    }
+
+    parse3D(file) {
+        // Bootstrap variables + time
+        let data = {};
+        data['t'] = { name: 't', values: [] };
+        this.variables.forEach(variableName => {
+            data[variableName] = { name: variableName, values: [] };
+        });
+
+        // Grab the data
+        file.split('\n').forEach(line => {
+            const lineValues = line.trim().split(' ');
+
+            lineValues.forEach((value, index) => {
+                // Time values are always in the first column
+                if (index === 0) {
+                    data['t'].values.push(value);
+
+                    return;
+                }
+
+                // The rest is ordered by dif. equations appearance in ODE file
+                const name = this.variables[index - 1];
+                data[name].values.push(value);
+            });
         });
 
         return data;
@@ -158,6 +198,17 @@ export class XppToPlotly {
                 opacity: 0.4
             },
             name: `${xName} vs. ${yName}` + (lastWith ? `<br>[${lastWith}]` : '')
+        };
+    }
+
+    transform3D(data, xName, yName, zName) {
+        return {
+            x: data[xName].values,
+            y: data[yName].values,
+            z: data[zName].values,
+            type: 'scatter3d',
+            mode: 'lines',
+            name: `${xName} vs. ${yName} vs. ${zName}`
         };
     }
 

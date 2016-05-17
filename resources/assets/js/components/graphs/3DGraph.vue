@@ -39,17 +39,28 @@
                 </select>
             </div>
 
+            <!-- Options panel -->
+            <strong>Options</strong>
+            <div class="checkbox">
+                <label>
+                    <input v-model="options.freeze" type="checkbox"> Freeze plots
+                </label>
+            </div>
+
             <button @click="createGraph(selected.xAxis, selected.yAxis, selected.zAxis)"
                     type="button"
                     class="btn btn-block btn-primary"
             >
-                Show
+                {{ options.freeze ? 'Add' : 'Show' }}
             </button>
         </div>
     </div>
 </template>
 
 <script type="text/babel">
+    import { PlotStorage } from '../../xpp/plot-storage';
+    import { XppToPlotly } from '../../xpp/xpp-plotly-bridge';
+
     export default {
         props: {
             input: {
@@ -63,7 +74,18 @@
         },
 
         ready() {
-            this.parse();
+            this.selected.xAxis = 't';
+            this.selected.yAxis = this.variables[0];
+            this.selected.zAxis = this.variables[1];
+
+            if (this.graphDrawn) {
+                this.createGraph('t', this.variables[0], this.variables[1]);
+            }
+        },
+
+        created() {
+            this.storage = new PlotStorage();
+            this.bridge = new XppToPlotly(this.variables);
         },
 
         data() {
@@ -74,14 +96,16 @@
                     yAxis: '',
                     zAxis: ''
                 },
-                data: {}
-            }
+                options: {
+                    freeze: false
+                }
+            };
         },
 
         computed: {
             insufficientVariablesError() {
                 if (this.variables.length < 2) {
-                    return "You need at least 2 variables and time to draw a 3D graph."
+                    return 'You need at least 2 variables and time to draw a 3D graph.';
                 } else {
                     return null;
                 }
@@ -93,8 +117,11 @@
                 if (this.graphDrawn) {
                     this.input = files.result;
                     this.variables = variables;
+                    this.bridge = new XppToPlotly(this.variables);
 
-                    this.parse();
+                    this.selected.xAxis = this.selected.xAxis || 't';
+                    this.selected.yAxis = this.selected.yAxis || this.variables[0];
+                    this.selected.zAxis = this.selected.zAxis || this.variables[1];
 
                     this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.zAxis, true);
                 }
@@ -107,63 +134,56 @@
                     return;
                 }
 
-                let graphData = {
-                    x: this.data[xName].values,
-                    y: this.data[yName].values,
-                    z: this.data[zName].values,
-                    type: 'scatter3d',
-                    mode: 'lines'
-                };
+                this.graphDrawn = true;
 
-                let graphOptions = {
-                    title: `"${xName}" vs. "${yName}" vs. "${zName}"`,
-                    xaxis: { title: xName },
-                    yaxis: { title: yName },
-                    zaxis: { title: zName },
-                    hovermode: 'closest'
-                };
+                this.$dispatch('plotting-started');
 
-                if (redraw) {
-                    // Only redraw if 3D graph was created by user to save CPU
-                    if (this.graphDrawn) {
-                        this.$els.tgraph.data[0] = graphData;
-                        this.$els.tgraph.layout = Object.assign(this.$els.tgraph.layout, graphOptions);
-                        Plotly.redraw(this.$els.tgraph);
-                        this.graphDrawn = true;
-                    }
-                } else {
-                    Plotly.newPlot(this.$els.tgraph, [graphData], graphOptions);
-                    this.graphDrawn = true;
+                if (!this.options.freeze) {
+                    this.storage.removeAll();
                 }
-            },
 
-            parse() {
-                // Bootstrap variables + time
-                this.data['t'] = { name: 't', values: [] };
-                this.variables.forEach(v => {
-                    this.data[v] = { name: v, values: [] };
-                });
+                this.bridge.prepare3D(this.input, xName, yName, zName).then(result => {
+                    // Add results to storage
+                    this.storage.add(result);
 
-                // Grab the data
-                this.input.split('\n').forEach(line => {
-                    const lineValues = line.trim().split(' ');
+                    // Specify plot options
+                    let graphOptions = {
+                        hovermode: 'closest'
+                    };
 
-                    lineValues.forEach((value, index) => {
-                        // Time values are always in the first column
-                        if (index === 0) {
-                            this.data['t'].values.push(value);
+                    // Show axes names and title only if we are not freezing the plot
+                    if (!this.options.freeze) {
+                        graphOptions = Object.assign(graphOptions, {
+                            title: `<i>${xName}</i> vs. <i>${yName}</i> vs <i>${zName}</i>`,
+                            xaxis: { title: xName },
+                            yaxis: { title: yName },
+                            zaxis: { title: zName }
+                        });
+                    }
 
-                            return;
-                        }
-
-                        // The rest is ordered by dif. equations appearance in ODE file
-                        const name = this.variables[index - 1];
-                        this.data[name].values.push(value);
-                    })
+                    // Draw / redraw (setTimeout prevents DOM freezing on initial load)
+                    if (redraw) {
+                        this.$els.tgraph.data = this.storage.all;
+                        this.$els.tgraph.layout = Object.assign(this.$els.tgraph.layout, graphOptions);
+                        setTimeout(() => {
+                            Plotly.redraw(this.$els.tgraph).then(() => {
+                                this.$dispatch('plotting-finished');
+                            });
+                        }, 0);
+                    } else {
+                        setTimeout(() => {
+                            Plotly.newPlot(this.$els.tgraph, this.storage.all, graphOptions, { scrollZoom: true }).then(() => {
+                                this.$dispatch('plotting-finished');
+                            });
+                        }, 0);
+                    }
+                }).catch(error => {
+                    this.$dispatch('plotting-finished');
+                    console.error(error); // eslint-disable-line no-console
                 });
             }
         }
-    }
+    };
 </script>
 
 <style>
