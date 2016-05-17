@@ -44,6 +44,10 @@ if (isDevEnv) {
         name: "browserify-hmr",
         options : {}
     });
+    elixir.config.js.browserify.options.fullPaths = true;
+    elixir.config.js.browserify.options.cache = {};
+    elixir.config.js.browserify.options.packageCache = {};
+    elixir.config.js.browserify.watchify.enabled = true;
 }
 
 // Elixir mixes
