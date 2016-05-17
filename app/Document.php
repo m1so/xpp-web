@@ -28,6 +28,13 @@ class Document extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function scopeWithoutAppended($query)
+    {
+        return $query->get()->each(function ($document) {
+            $document->setAppends([]);
+        });
+    }
+
     private function getFileContent($name)
     {
         try {

@@ -24,7 +24,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $documents = \Auth::user()->documents()->orderBy('updated_at', 'desc')->get();
+        $documents = \Auth::user()->documents()->orderBy('updated_at', 'desc')->withoutAppended();
 
         return view('home', compact('documents'));
     }

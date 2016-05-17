@@ -48,10 +48,7 @@ class DocumentsController extends Controller
      */
     public function all(Request $request)
     {
-        $documents = $request->user()->documents()->orderBy('folder')->get();
-        $documents->each(function ($document) {
-            $document->setAppends([]);
-        });
+        $documents = $request->user()->documents()->orderBy('folder')->withoutAppended();
 
         return view('document.list', compact('documents'));
     }
