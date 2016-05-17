@@ -51,7 +51,7 @@
 </template>
 
 <script>
-    import { groupBy, findKey } from 'lodash';
+    import groupBy from 'lodash/collection/groupBy';
 
     import CreateDocumentModal from './DocumentCreateModal.vue';
     import { modal } from 'vue-strap';

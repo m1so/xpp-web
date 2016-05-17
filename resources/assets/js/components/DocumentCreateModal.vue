@@ -44,7 +44,7 @@
 </template>
 
 <script>
-    import { values } from 'lodash';
+    import values from 'lodash/object/values';
 
     import { modal } from 'vue-strap';
 

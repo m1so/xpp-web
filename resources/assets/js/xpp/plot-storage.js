@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash';
+import isEqual from 'lodash/lang/isEqual';
 
 export class PlotStorage {
     constructor() {
