@@ -31,18 +31,27 @@ const definition = {
     [DIFFERENTIAL_EQUATION]: {
         prefix: '',
         keywords: ['\'', '/dt'],
+        options: {
+            onePerLine: true
+        },
         matcher: (part) => equationMatcher(part, definition[DIFFERENTIAL_EQUATION].keywords),
         sanitizer: (part) => part
     },
     [DIFFERENCE_EQUATION]: {
         prefix: '',
         keywords: ['(t+1)'],
+        options: {
+            onePerLine: true
+        },
         matcher: (part) => equationMatcher(part, definition[DIFFERENCE_EQUATION].keywords),
         sanitizer: (part) => part
     },
     [AUX]: {
         prefix: 'aux ',
         keywords: ['aux '],
+        options: {
+            onePerLine: true
+        },
         matcher: (part) => equationMatcher(part, definition[AUX].keywords),
         sanitizer: (part) => simpleKeywordRemover(part, definition[AUX].keywords)
     },
@@ -206,7 +215,7 @@ export default class Parser {
             }
 
             // Eqns have to be on seperate lines
-            if (tokenType === DIFFERENCE_EQUATION || tokenType === DIFFERENTIAL_EQUATION) {
+            if (definition[tokenType].options && definition[tokenType].options.onePerLine) {
                 this.addToken(tokenExtractor(line, tokenType), n);
                 continue;
             }
