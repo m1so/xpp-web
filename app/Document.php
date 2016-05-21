@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
-    protected $fillable = ['title', 'folder'];
+    protected $fillable = ['title', 'folder', 'public'];
 
     protected $appends = ['files'];
 
@@ -33,6 +33,11 @@ class Document extends Model
         return $query->get()->each(function ($document) {
             $document->setAppends([]);
         });
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('folder')->orderBy('updated_at', 'desc');
     }
 
     private function getFileContent($name)

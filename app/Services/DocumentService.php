@@ -32,7 +32,8 @@ class DocumentService
     {
         $document = $request->user()->documents()->create([
             'title' => $request->get('title', 'Untitled'),
-            'folder' => $request->get('folder', '')
+            'folder' => $request->get('folder', ''),
+            'public' => $request->get('public', 0),
         ]);
 
         $path = self::XPPWEB_DIRECTORY.DIRECTORY_SEPARATOR.$document->getKey().DIRECTORY_SEPARATOR;
@@ -45,6 +46,39 @@ class DocumentService
         }
 
         return $document;
+    }
+
+    /**
+     * Duplicate existing document
+     *
+     * @param Document $document
+     * @param User     $user
+     *
+     * @return Document
+     */
+    public function duplicate(Document $document, User $user = null)
+    {
+        if (!$user) {
+            $user = request()->user();
+        }
+
+        // Duplicate document except the provided columns
+        $copy = $document->replicate([
+            'user_id',
+            'public',
+            $document->getKeyName(),
+            $document->getUpdatedAtColumn(),
+            $document->getCreatedAtColumn(),
+        ]);
+
+        $user->documents()->save($copy);
+
+        $this->storage->copy(
+            self::XPPWEB_DIRECTORY.DIRECTORY_SEPARATOR.$document->getKey().DIRECTORY_SEPARATOR.'input.ode',
+            self::XPPWEB_DIRECTORY.DIRECTORY_SEPARATOR.$copy->getKey().DIRECTORY_SEPARATOR.'input.ode'
+        );
+
+        return $copy;
     }
 
     /**

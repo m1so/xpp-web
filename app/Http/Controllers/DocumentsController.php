@@ -30,6 +30,10 @@ class DocumentsController extends Controller
         /** @var Document $document */
         $document = Document::findOrFail($id);
 
+        if ($document->public && $document->user->id !== $request->user()->id) {
+            return view('document.showPublic', compact('document'));
+        }
+
         if ($document->user->id !== $request->user()->id) {
             return view('errors.401');
         }
@@ -48,9 +52,19 @@ class DocumentsController extends Controller
      */
     public function all(Request $request)
     {
-        $documents = $request->user()->documents()->orderBy('folder')->withoutAppended();
+        $documents = $request->user()->documents()->ordered()->withoutAppended();
 
         return view('document.list', compact('documents'));
+    }
+
+    /*
+     * List all public documents
+     */
+    public function publicDocs()
+    {
+        $documents = Document::with('user')->where('public', 1)->ordered()->withoutAppended();
+
+        return view('document.public', compact('documents'));
     }
 
     /*
@@ -64,6 +78,27 @@ class DocumentsController extends Controller
             'data' => $document,
             'message' => 'Document created'
         ], Response::HTTP_CREATED);
+    }
+
+    /*
+     * Duplicate an existing document
+     */
+    public function duplicate($id)
+    {
+        $document = Document::find($id);
+
+        if ($document->public) {
+            $duplicate = $this->documentService->duplicate($document);
+
+            return response()->json([
+                'data' => $duplicate,
+                'message' => 'Document copied.'
+            ]);
+        }
+
+        return response()->json([
+            'error' => 'Failed to copy document, it is not public.'
+        ]);
     }
 
     /*

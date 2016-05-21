@@ -13,6 +13,7 @@
                 <ul class="nav navbar-nav">
                     <li><a href="/home">Home</a></li>
                     <li><a href="/documents">Documents</a></li>
+                    <li><a href="/documents/public">Public</a></li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->

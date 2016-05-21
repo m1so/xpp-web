@@ -15,6 +15,7 @@
                         <ul class="todo-list">
                             <li v-for="document in folder">
                                 <a href="/documents/{{ document.id }}" class="text-black">{{ document.title }}</a>
+                                <span v-if="document.public" class="label bg-purple">Public</span>
                                 <button @click="remove(document)" type="button" class="btn btn-xs btn-danger btn-doc-list pull-right">Delete</button>
                                 <button @click="edit(document)" type="button" class="btn btn-xs bg-yellow btn-doc-list pull-right">Edit</button>
                                 <a href="/documents/{{ document.id }}" type="button" class="btn btn-xs btn-primary btn-doc-list pull-right">Open in editor</a>
@@ -40,6 +41,12 @@
                         <label>Folder name</label>
                         <input type="text" v-model="editedDocument.folder" class="form-control">
                     </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input v-model="editedDocument.public" type="checkbox"> Public
+                        </label>
+                    </div>
                 </div>
                 <div slot="modal-footer" class="modal-footer">
                     <button type="button" class="btn btn-danger" @click="showEdit = false">Cancel</button>
@@ -50,7 +57,7 @@
     </div>
 </template>
 
-<script>
+<script type="text/babel">
     import groupBy from 'lodash/collection/groupBy';
 
     import CreateDocumentModal from './DocumentCreateModal.vue';

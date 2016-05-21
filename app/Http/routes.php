@@ -30,8 +30,10 @@ Route::group(['middleware' => ['web']], function () {
     Route::post('api/xpp', 'XppController@run');
 
     Route::get('documents', ['as' => 'document.list', 'uses' => 'DocumentsController@all']);
+    Route::get('documents/public', ['as' => 'document.public', 'uses' => 'DocumentsController@publicDocs']);
     Route::get('documents/{id}', ['as' => 'document.show', 'uses' => 'DocumentsController@show']);
     Route::post('documents', 'DocumentsController@create');
+    Route::post('documents/duplicate/{id}', 'DocumentsController@duplicate');
     Route::delete('documents/{id}', 'DocumentsController@delete');
     Route::put('documents/{id}', 'DocumentsController@update');
 

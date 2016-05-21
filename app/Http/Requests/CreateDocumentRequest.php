@@ -27,6 +27,7 @@ class CreateDocumentRequest extends Request
             'title' => 'required|string|max:128|min:5',
             'folder' => 'string|max:128',
             'ode' => 'mimetypes:text/plain|max:1024',
+            'public' => 'boolean',
         ];
     }
 

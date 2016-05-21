@@ -26,6 +26,12 @@
                 <input type="file" v-el:file>
             </div>
 
+            <div class="checkbox">
+                <label>
+                    <input v-model="public" type="checkbox"> Optional: Public
+                </label>
+            </div>
+
             <div v-if="errorMsg" class="callout callout-danger">
                 <h4>Validation failed!</h4>
                 <ul>
@@ -53,6 +59,7 @@
             return {
                 title: null,
                 folder: '',
+                public: false,
                 showModal: false,
                 errorMsg: null,
                 loading: false
@@ -72,6 +79,7 @@
                 let formData = new FormData();
                 formData.append('title', this.title);
                 formData.append('folder', this.folder);
+                formData.append('public', this.public ? 1 : 0);
 
                 if (this.$els.file.files.length === 1) {
                     formData.append('ode', this.$els.file.files[0]);
