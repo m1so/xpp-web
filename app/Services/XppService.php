@@ -35,8 +35,8 @@ class XppService
             'with' => [],
         ], $options);
 
-        $relativePath = 'xppweb/'.$document->getKey();
-        $path = storage_path('app/'.$relativePath);
+        $relativePath = 'xppweb'.DIRECTORY_SEPARATOR.$document->getKey();
+        $path = storage_path('app'.DIRECTORY_SEPARATOR.$relativePath);
 
         $this->cleanDirectory($relativePath, $options);
 
