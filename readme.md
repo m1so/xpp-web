@@ -1,4 +1,5 @@
 # XppWeb
+Demo: [xpp.baumgartner.io](http://xpp.baumgartner.io)
 
 ## Installation
 Full guide is available in the [thesis](https://is.muni.cz/th/423763/prif_b/BcThesis.pdf) ("Technical details" chapter).  
