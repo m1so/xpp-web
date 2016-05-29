@@ -206,6 +206,13 @@ export default {
                 this.$els.editor.blur();
             }
         });
+
+        // Draw the graphs once parsing is done
+        this.$broadcast('redraw', this.variables, this.document.files, {
+            redraw: false,
+            lastWith: this.lastWith,
+            layout: this.parser.layout
+        });
     },
 
     beforeDestroy() {
@@ -301,7 +308,9 @@ export default {
                 }
 
                 this.$broadcast('redraw', this.variables, response.data.document.files, {
-                    lastWith: this.lastWith
+                    redraw: true,
+                    lastWith: this.lastWith,
+                    layout: this.parser.layout
                 });
 
                 this.showAlert('success', 'Finished!', 'Computations have successfully finished.');

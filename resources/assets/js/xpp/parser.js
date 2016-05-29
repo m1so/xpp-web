@@ -383,4 +383,20 @@ export default class Parser {
         return variables;
     }
 
+    get layout() {
+        let layout = {};
+        const layoutOptions = [
+            'xp', 'xplot', 'yp', 'yplot',
+            'xlo', 'xhi', 'ylo', 'yhi'
+        ];
+
+        this.tokens
+            .filter(token => token.type === OPTION && layoutOptions.includes(token.value[0].toLowerCase()))
+            .forEach(token => {
+                layout[token.value[0].toLowerCase()] = parseFloat(token.value[1]) ? parseFloat(token.value[1]) : token.value[1];
+            });
+
+        return layout;
+    }
+
 }

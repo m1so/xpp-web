@@ -21,14 +21,14 @@
             <div class="form-group">
                 <label>X axis</label>
                 <select v-model="selected.xAxis" class="form-control axis-control" :disabled="show.ics.interactive || show.equil.interactive">
-                    <option selected>t</option>
+                    <option>t</option>
                     <option v-for="name in variables">{{ name }}</option>
                 </select>
 
                 <label>Y axis</label>
                 <select v-model="selected.yAxis" class="form-control axis-control" :disabled="show.ics.interactive || show.equil.interactive">
                     <option>t</option>
-                    <option selected>{{ variables[0] }}</option>
+                    <option>{{ variables[0] }}</option>
                     <option v-for="name in variables.slice(1)">{{ name }}</option>
                 </select>
             </div>
@@ -85,9 +85,48 @@
                     <input v-model="options.freeze" type="checkbox"> Freeze plots
                 </label>
             </div>
+            <div class="checkbox">
+                <label>
+                    <input v-model="options.autoscale" type="checkbox"> Autoscale
+                </label>
+            </div>
+            <!-- Scaling panel -->
+            <div v-if="!options.autoscale" class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>X min</label>
+                        <input v-model="layout.xlo" type="text" class="form-control" placeholder="auto">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>X max</label>
+                        <input v-model="layout.xhi" type="text" class="form-control" placeholder="auto">
+                    </div>
+                </div>
+                <div v-if="isNumeric(layout.xlo) !== isNumeric(layout.xhi) || isNumeric(layout.ylo) !== isNumeric(layout.yhi)" class="col-md-12">
+                    <div class="callout callout-danger">
+                        <p>Both min and max have to be numeric and filleded out.</p>
+                    </div>
+                </div>
+            </div>
+            <div v-if="!options.autoscale" class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Y min</label>
+                        <input v-model="layout.ylo" type="text" class="form-control" placeholder="auto">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Y max</label>
+                        <input v-model="layout.yhi" type="text" class="form-control" placeholder="auto">
+                    </div>
+                </div>
+            </div>
 
             <!-- Buttons -->
-            <button @click="createGraph(selected.xAxis, selected.yAxis, selected.type, { redraw: options.freeze })"
+            <button @click="createGraph(selected.xAxis, selected.yAxis, selected.type, { redraw: options.freeze, layout: layout })"
                     type="button"
                     class="btn btn-block btn-primary"
             >
@@ -205,13 +244,6 @@
             }
         },
 
-        ready() {
-            this.selected.xAxis = 't';
-            this.selected.yAxis = this.variables[0];
-
-            this.createGraph('t', this.variables[0], this.selected.type);
-        },
-
         created() {
             this.storage = new PlotStorage();
             this.bridge = new XppToPlotly(this.variables);
@@ -241,7 +273,14 @@
                     dirField: false
                 },
                 options: {
-                    freeze: false
+                    freeze: false,
+                    autoscale: false
+                },
+                layout: {
+                    xlo: null,
+                    xhi: null,
+                    ylo: null,
+                    yhi: null
                 },
                 loading: {
                     svg: false
@@ -266,18 +305,42 @@
                 this.bridge = new XppToPlotly(this.variables);
                 this.overlay.equilibrium = Boolean(files.equilibria);
 
-                this.selected.xAxis = this.selected.xAxis || 't';
-                this.selected.yAxis = this.selected.yAxis || this.variables[0];
+                // Save the layout if provided
+                if (options.layout && Object.keys(options.layout).length) {
+                    this.options.autoscale = false;
+                    this.layout = {
+                        xlo: this.layout.xlo || options.layout.xlo,
+                        ylo: this.layout.ylo || options.layout.ylo,
+                        xhi: this.layout.xhi || options.layout.xhi,
+                        yhi: this.layout.yhi || options.layout.yhi
+                    };
+                    // Overwrite the layout from ODE file if user already defined one in the right panel
+                    options.layout = Object.assign(options.layout, this.layout);
+                } else {
+                    this.options.autoscale = true;
+                }
 
-                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.type, {
-                    redraw: true,
-                    lastWith: options.lastWith
-                });
+                // Load x-axis from ODE file if provided or if the plot isn't frozen
+                if (!this.options.autoscale && options.layout && (options.layout.xp || options.layout.xplot)) {
+                    this.selected.xAxis = options.layout.xp || options.layout.xplot;
+                } else {
+                    this.selected.xAxis = this.selected.xAxis || 't';
+                }
+
+                // Load y-axis from ODE file if provided or if the plot isn't frozen
+                if (!this.options.autoscale && options.layout && (options.layout.yp || options.layout.yplot)) {
+                    this.selected.yAxis = options.layout.yp || options.layout.yplot;
+                } else {
+                    this.selected.yAxis = this.selected.yAxis || this.variables[0];
+                }
+
+                // Draw the graph
+                this.createGraph(this.selected.xAxis, this.selected.yAxis, this.selected.type, options);
             }
         },
 
         methods: {
-            createGraph(xName, yName, mode = 'markers', { redraw = false, lastWith = '' } = {}) {
+            createGraph(xName, yName, mode = 'markers', { redraw = false, lastWith = '', layout = null } = {}) {
                 if (this.variables.length < 1) {
                     return;
                 }
@@ -324,10 +387,33 @@
                         });
                     }
 
+                    // Add layout from ODE file if provided
+                    if (layout !== null && Object.keys(layout).length && !this.options.autoscale) {
+                        // Define min and max for x-axis
+                        if (layout.xlo || layout.xhi) {
+                            graphOptions.xaxis = Object.assign(graphOptions.xaxis ? graphOptions.xaxis : {}, {
+                                range: [
+                                    layout.xlo ? layout.xlo : '',
+                                    layout.xhi ? layout.xhi : ''
+                                ]
+                            });
+                        }
+
+                        // Define min and max for y-axis
+                        if (layout.ylo || layout.yhi) {
+                            graphOptions.yaxis = Object.assign(graphOptions.yaxis ? graphOptions.yaxis : {}, {
+                                range: [
+                                    layout.ylo ? layout.ylo : '',
+                                    layout.yhi ? layout.yhi : ''
+                                ]
+                            });
+                        }
+                    }
+
                     // Draw / redraw (setTimeout prevents DOM freezing on initial load)
                     if (redraw) {
                         this.$els.graph.data = this.storage.all;
-                        this.$els.graph.layout = Object.assign(this.$els.graph.layout, graphOptions);
+                        this.$els.graph.layout = Object.assign(this.$els.graph.layout ? this.$els.graph.layout : {}, graphOptions);
                         setTimeout(() => {
                             Plotly.redraw(this.$els.graph).then(() => {
                                 this.$dispatch('plotting-finished');
@@ -386,6 +472,10 @@
                 });
 
                 this.stopInteractiveClick(name);
+            },
+
+            isNumeric(number) {
+                return $.isNumeric(number);
             },
 
             /**
